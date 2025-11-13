@@ -92,6 +92,7 @@ void arg_parser(ArgParser *parser, int argc, char *argv[])
                         "Error: unrecognized option '%s'\n"
                         "Use '--help' to see the list of available commands.\n",
                         flag);
+                free_args_parser(parser);
                 exit(EXIT_FAILURE);
             }
         }
@@ -120,6 +121,7 @@ void arg_parser(ArgParser *parser, int argc, char *argv[])
                         fprintf(stderr,
                                 "Error: missing value for required argument '%s'\n",
                                 parser->args[i].name);
+                        free_args_parser(parser);
                         exit(EXIT_FAILURE);
                     }
                     char *str = (char *)value;
@@ -133,6 +135,7 @@ void arg_parser(ArgParser *parser, int argc, char *argv[])
                         fprintf(stderr,
                                 "Error: missing value for required argument '%s'\n",
                                 parser->args[i].name);
+                        free_args_parser(parser);
                         exit(EXIT_FAILURE);
                     }
                     // match arguments with their provided options
