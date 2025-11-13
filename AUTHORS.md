@@ -2,7 +2,7 @@
 
 This project is maintained and developed by the following lead developers:
 
-- **Kelani Darasimi** – Lead developer, core functionality, argument parser, macros, and documentation  
+- **Kelani Darasimi** – Lead developer, core functionality, feature design, and review
   - GitHub: [github.com/KelaniDarasimi](https://github.com/KelaniDarasimi)
   - email: <kelanidarasimi9@gmail.com>
 
