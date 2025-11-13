@@ -42,9 +42,9 @@
  */
 typedef enum
 {
-    ARG_TYPE_BOOL,  // Boolean flag (true/false)
-    ARG_TYPE_INT,   // Integer argument
-    ARG_TYPE_STRING // String argument
+    ARG_TYPE_BOOL,
+    ARG_TYPE_INT,
+    ARG_TYPE_STRING
 } ArgType;
 
 /* ----------------------------------------------------------
@@ -70,14 +70,14 @@ typedef enum
  */
 typedef struct
 {
-    const char *db;       // Database name
-    const char *dbtype;   // Database type (e.g., MySQL, PostgreSQL)
-    const char *host;     // Database host address
-    int port;             // Port number
-    const char *password; // Password credential
-    const char *user;     // Username
-    const char *db_uri;   // Connection URI
-    const char *help;     // help
+    const char *db;
+    const char *dbtype;
+    const char *host;
+    int port;
+    const char *password;
+    const char *user;
+    const char *db_uri;
+    const char *help;
 } Options;
 
 /* ----------------------------------------------------------
@@ -88,12 +88,12 @@ typedef struct
  */
 typedef struct
 {
-    const char *name;        // Argument name (e.g., "verbose")
-    Flag flag;               // How it's represented on the CLI
-    ArgType type;            // Argument type (bool, int, string)
-    const char *description; // Human-readable help text
-    Options *value;          // Pointer to the variable storing parsed value
-    bool required;           // Whether this argument is mandatory
+    const char *name;
+    Flag flag;
+    ArgType type;
+    const char *description;
+    Options *value;
+    bool required;
 } Arguments;
 
 /* ----------------------------------------------------------
@@ -104,9 +104,9 @@ typedef struct
  */
 typedef struct
 {
-    Arguments *args; // Dynamic array of argument definitions
-    int arg_counts;  // Number of registered arguments
-    int capacity;    // Current array capacity
+    Arguments *args;
+    int arg_counts;
+    int capacity;
 } ArgParser;
 
 // function declaration
