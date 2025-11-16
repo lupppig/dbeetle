@@ -1,13 +1,13 @@
-name: C Build & Memory Safety Checks
+name: Protect Memory Safety (dbeetle - GCC)
 
 on:
-    push:
-        branches: ["main"]
     pull_request:
+        branches: ["main"]
+    push:
         branches: ["main"]
 
 jobs:
-    build-and-scan:
+    memory-safety:
         runs-on: ubuntu-latest
 
         steps:
@@ -17,34 +17,40 @@ jobs:
             - name: Install dependencies
               run: |
                   sudo apt-get update
-                  sudo apt-get install -y valgrind gcc cmake
+                  sudo apt-get install -y gcc valgrind
 
-            - name: Configure CMake with Sanitizers
+            # ---------------------------------
+            # Build dbeetle using GCC + Sanitizers
+            # ---------------------------------
+            - name: Compile dbeetle (ASan + UBSan)
               run: |
                   mkdir -p build
-                  cd build
-                  cmake .. \
-                    -DCMAKE_BUILD_TYPE=Debug \
-                    -DCMAKE_C_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
+                  gcc \
+                    -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 \
+                    -std=c11 \
+                    -fsanitize=address,undefined \
+                    -fno-omit-frame-pointer \
+                    src/*.c -I include \
+                    -o build/dbeetle
 
-            - name: Build dbeetle
+            # ---------------------------------
+            # Run under Sanitizers
+            # ---------------------------------
+            - name: Run with ASan + UBSan
               run: |
-                  cd build
-                  make -j$(nproc)
+                  echo "Running dbeetle with AddressSanitizer + UBSan..."
+                  ./build/dbeetle || exit 1
 
-            - name: Run dbeetle with Sanitizers (ASan + UBSan)
+            # ---------------------------------
+            # Run under Valgrind (Leak + Bounds Check)
+            # ---------------------------------
+            - name: Run Valgrind Memory Scan
               run: |
-                  cd build
-                  echo "Running with address + undefined sanitizers..."
-                  ./dbeetle || exit 1
-
-            - name: Run dbeetle Under Valgrind
-              run: |
-                  cd build
-                  echo "Running valgrind memory analysis..."
+                  echo "Running Valgrind deep scan..."
                   valgrind \
                     --leak-check=full \
                     --show-leak-kinds=all \
                     --track-origins=yes \
+                    --errors-for-leak-kinds=all \
                     --error-exitcode=1 \
-                    ./dbeetle
+                    ./build/dbeetle
