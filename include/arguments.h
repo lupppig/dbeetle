@@ -190,6 +190,7 @@ void arg_string(ArgParser *, const char *, Flag, const char *, void *, bool);
             if (!tmp_ptr)                                                    \
             {                                                                \
                 fprintf(stderr, "Error: memory reallocation failed.\n");     \
+                free(array);                                                             \
                 exit(EXIT_FAILURE);                                          \
             }                                                                \
             (array) = tmp_ptr;                                               \
