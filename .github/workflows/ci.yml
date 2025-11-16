@@ -1,0 +1,50 @@
+name: C Build & Memory Safety Checks
+
+on:
+    push:
+        branches: ["main"]
+    pull_request:
+        branches: ["main"]
+
+jobs:
+    build-and-scan:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Install dependencies
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y valgrind gcc cmake
+
+            - name: Configure CMake with Sanitizers
+              run: |
+                  mkdir -p build
+                  cd build
+                  cmake .. \
+                    -DCMAKE_BUILD_TYPE=Debug \
+                    -DCMAKE_C_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
+
+            - name: Build dbeetle
+              run: |
+                  cd build
+                  make -j$(nproc)
+
+            - name: Run dbeetle with Sanitizers (ASan + UBSan)
+              run: |
+                  cd build
+                  echo "Running with address + undefined sanitizers..."
+                  ./dbeetle || exit 1
+
+            - name: Run dbeetle Under Valgrind
+              run: |
+                  cd build
+                  echo "Running valgrind memory analysis..."
+                  valgrind \
+                    --leak-check=full \
+                    --show-leak-kinds=all \
+                    --track-origins=yes \
+                    --error-exitcode=1 \
+                    ./dbeetle

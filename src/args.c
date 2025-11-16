@@ -181,6 +181,7 @@ bool flag_exists(ArgParser *parser, char *flag)
  */
 void append_args(ArgParser *parser, Arguments arg)
 {
+
     DYN_ARRAY_APPEND(parser->args, parser->arg_counts, parser->capacity, arg);
 }
 
