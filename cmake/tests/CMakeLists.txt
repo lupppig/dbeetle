@@ -1,5 +1,6 @@
 # All test files inside tests/src
 cmake_minimum_required(VERSION 3.30)
+set(CMAKE_C_STANDARD 99)
 project(dbeetle_test C)
 
 file(GLOB TEST_FILES "src/*.c")

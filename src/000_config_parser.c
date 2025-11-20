@@ -1,7 +1,7 @@
 #include "include/config_parser.h"
 
 
-DBConfig_t *init_db_config(const char *type, const char *uri, int timeout_seconds, int incremental_enabled) {
+DBConfig_t *init_db_config(const char *type, const char *uri, size_t timeout_seconds, size_t incremental_enabled) {
   DBConfig_t *cfg = malloc(sizeof(DBConfig_t));
 
   if (!cfg) return NULL;
@@ -31,7 +31,7 @@ StorageConfig_t *init_storage_config(const char *output_path, const char *compre
   return cfg;
 }
 
-RuntimeConfig_t *init_runtime_config(int log_level, int thread_count, const char *temp_dir) {
+RuntimeConfig_t *init_runtime_config(size_t log_level, size_t thread_count, const char *temp_dir) {
   RuntimeConfig_t *cfg = malloc(sizeof(RuntimeConfig_t));
 
   if (!cfg) return NULL;

@@ -1,20 +1,23 @@
 #include <stdio.h>
-#include <math.h>
 #include <yaml.h>
 #include "include/config_parser.h"
+
+size_t min(size_t a, size_t b) {
+  return (a > b) * a + (a <= b) * b;
+}
 
 void print_app_config(AppConfig_t *cfg) {
   if (!cfg) return;
   puts("db:");
-  printf("\t incremental_enabled: %d\n", cfg->db.incremental_enabled);
-  printf("\t timeout_seconds: %d\n", cfg->db.timeout_seconds);
+  printf("\t incremental_enabled: %li\n", cfg->db.incremental_enabled);
+  printf("\t timeout_seconds: %li\n", cfg->db.timeout_seconds);
   printf("\t type: %s\n", cfg->db.type);
   printf("\t uri: %s\n", cfg->db.uri);
 
   puts("runtime:");
-  printf("\t log_level: %d\n", cfg->runtime.log_level);
+  printf("\t log_level: %li\n", cfg->runtime.log_level);
   printf("\t tmp_dir: %s\n", cfg->runtime.temp_dir);
-  printf("\t thread_count: %d\n", cfg->runtime.thread_count);
+  printf("\t thread_count: %li\n", cfg->runtime.thread_count);
 
   puts("storage:");
   printf("\t compression: %s\n", cfg->storage.compression);
@@ -23,7 +26,7 @@ void print_app_config(AppConfig_t *cfg) {
   printf("\t remote_target: %s\n", cfg->storage.remote_target);
 }
 
-int assign_value(config_section_t section, const char *key,
+size_t assign_value(config_section_t section, const char *key,
   const char *value, AppConfig_t *cfg, ConfigParserError_t *err) {
   long val;
 
@@ -79,7 +82,7 @@ ParserStatus_t config_load_file(const char *path, AppConfig_t *out_config, Confi
   yaml_parser_t parser;
   yaml_event_t event;
   ParserStatus_t status = CONFIG_OK;
-  int status_text_cap = BUF_LEN_S;
+  size_t status_text_cap = BUF_LEN_S;
   char *status_text = malloc(status_text_cap);
   ConfigParserError_t *local_err = create_parser_error();
   config_section_t current_section = SECTION_NONE;
@@ -199,7 +202,7 @@ ParserStatus_t config_load_file(const char *path, AppConfig_t *out_config, Confi
     destroy_parser_error(local_err);
     if (status_text) free(status_text);
   } else {
-    snprintf(local_err->message, fmin(sizeof(local_err->message), status_text_cap), "%s", status_text);
+    snprintf(local_err->message, min(sizeof(local_err->message), status_text_cap), "%s", status_text);
     if (status_text) free(status_text);
     *err = local_err;
   }

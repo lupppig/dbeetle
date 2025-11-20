@@ -17,10 +17,10 @@
 
 
 typedef struct DBConfig {
-  char            type[BUF_LEN_XS];
-  char            uri[BUF_LEN_S];
-  int             timeout_seconds;
-  int             incremental_enabled;
+  char             type[BUF_LEN_XS];
+  char             uri[BUF_LEN_S];
+  size_t           timeout_seconds;
+  size_t           incremental_enabled;
 } DBConfig_t;
 
 typedef enum {
@@ -43,9 +43,9 @@ typedef struct storageConfig {
 } StorageConfig_t;
 
 typedef struct RuntimeConfig {
-  int         log_level;
-  int         thread_count;
-  char        temp_dir[BUF_LEN_S];
+  size_t          log_level;
+  size_t          thread_count;
+  char            temp_dir[BUF_LEN_S];
 } RuntimeConfig_t;
 
 typedef struct AppConfig {
@@ -63,10 +63,10 @@ typedef enum {
 } ParserStatus_t;
 
 typedef struct ConfigParserError {
-  ParserStatus_t    code;
-  char              message[BUF_LEN_M];
-  int               line;
-  int               column;
+  ParserStatus_t        code;
+  char                  message[BUF_LEN_M];
+  size_t                line;
+  size_t                column;
 } ConfigParserError_t;
 
 
@@ -81,11 +81,11 @@ typedef struct ConfigParserError {
  **/
 ParserStatus_t config_load_file(const char *path, AppConfig_t *out_config, ConfigParserError_t **err);
 
-DBConfig_t *init_db_config(const char *type, const char *uri, int timeout_seconds, int incremental_enabled);
+DBConfig_t *init_db_config(const char *type, const char *uri, size_t timeout_seconds, size_t incremental_enabled);
 
 StorageConfig_t *init_storage_config(const char *output_path, const char *compression, const char *encryption_key_path, const char *remote_target);
 
-RuntimeConfig_t *init_runtime_config(int log_level, int thread_count, const char *temp_dir);
+RuntimeConfig_t *init_runtime_config(size_t log_level, size_t thread_count, const char *temp_dir);
 
 AppConfig_t *init_app_config(DBConfig_t *db, StorageConfig_t *storage, RuntimeConfig_t *runtime);
 
