@@ -1,5 +1,4 @@
-#include <stdio.h>
-#include "arguments.h"
+#include "include/arguments.h"
 #include <stdbool.h>
 
 int main(int argc, char **argv)
