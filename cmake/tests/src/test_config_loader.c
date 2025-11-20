@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
 
     if (status != CONFIG_OK) {
         if (err) {
-            printf("Error [%d] line %d col %d: %s\n", err->code, err->line, err->column, err->message);
+            printf("Error [%d] line %li col %li: %s\n", err->code, err->line, err->column, err->message);
             destroy_parser_error(err);
         } else {
             printf("An unknown error occurred when parsing the config\n");
