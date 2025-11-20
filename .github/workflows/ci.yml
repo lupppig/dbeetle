@@ -18,7 +18,7 @@ jobs:
               run: |
                   sudo apt-get update
                   sudo apt-get install -y gcc valgrind
-                  sudo apt-get install libyaml-dev
+                  sudo apt-get install -y libyaml-dev
 
             # ---------------------------------------------------------
             # 1. Build with sanitizers (ASan + UBSan)
@@ -32,7 +32,7 @@ jobs:
                     -g \
                     -fsanitize=address,undefined \
                     -fno-omit-frame-pointer \
-                    src/*.c -I include \
+                    src/*.c -I include -lyaml \
                     -o build-asan/dbeetle
 
             - name: Run ASan + UBSan binary
