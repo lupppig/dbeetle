@@ -26,7 +26,7 @@ void print_app_config(AppConfig_t *cfg) {
   printf("\t remote_target: %s\n", cfg->storage.remote_target);
 }
 
-size_t assign_value(config_section_t section, const char *key,
+int assign_value(config_section_t section, const char *key,
   const char *value, AppConfig_t *cfg, ConfigParserError_t *err) {
   long val;
 
