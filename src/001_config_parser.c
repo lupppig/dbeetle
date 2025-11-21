@@ -74,14 +74,15 @@ int assign_value(config_section_t section, const char *key,
       return -1;
     }
   }
+
   return 0;
 }
 
-ParserStatus_t config_load_file(const char *path, AppConfig_t *out_config, ConfigParserError_t **err) {
+ConfigParserStatus_t config_load_file(const char *path, AppConfig_t *out_config, ConfigParserError_t **err) {
   FILE *fh = fopen(path, "r");
   yaml_parser_t parser;
   yaml_event_t event;
-  ParserStatus_t status = CONFIG_OK;
+  ConfigParserStatus_t status = CONFIG_OK;
   size_t status_text_cap = BUF_LEN_S;
   char *status_text = malloc(status_text_cap);
   ConfigParserError_t *local_err = create_parser_error();

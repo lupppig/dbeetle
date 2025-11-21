@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
 
     ConfigParserError_t *err = NULL;
 
-    ParserStatus_t status = config_load_file(config_path, cfg, &err);
+    ConfigParserStatus_t status = config_load_file(config_path, cfg, &err);
 
     if (status != CONFIG_OK) {
         if (err) {
