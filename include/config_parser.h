@@ -8,12 +8,9 @@
 #include <stdbool.h>
 
 //internal library headers
+#include "globals.h"
 
 //macro defs
-#define BUF_LEN_XS (64)
-#define BUF_LEN_S (256)
-#define BUF_LEN_M (512)
-#define BUF_LEN (1024)
 
 
 typedef struct DBConfig {
@@ -60,10 +57,10 @@ typedef enum {
   CONFIG_PARSE_ERROR,
   CONFIG_VALIDATION_ERROR,
   CONFIG_MEMORY_ERROR
-} ParserStatus_t;
+} ConfigParserStatus_t;
 
 typedef struct ConfigParserError {
-  ParserStatus_t        code;
+  ConfigParserStatus_t        code;
   char                  message[BUF_LEN_M];
   size_t                line;
   size_t                column;
@@ -76,10 +73,10 @@ typedef struct ConfigParserError {
  * @out_config: the output config options in a defined struct
  * @err: written error object on failure
  *
- * Return: ParserStatus_t
+ * Return: ConfigParserStatus_t
  * ~NOTE~:
  **/
-ParserStatus_t config_load_file(const char *path, AppConfig_t *out_config, ConfigParserError_t **err);
+ConfigParserStatus_t config_load_file(const char *path, AppConfig_t *out_config, ConfigParserError_t **err);
 
 DBConfig_t *init_db_config(const char *type, const char *uri, size_t timeout_seconds, size_t incremental_enabled);
 
