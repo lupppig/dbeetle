@@ -1,65 +1,77 @@
-name: Protect Memory Safety (dbeetle)
+name: Check Code Quality + Run Unit Tests (dbeetle)
 
 on:
-    pull_request:
-        branches: ["main"]
-    push:
-        branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  push:
+    branches: ["main"]
 
 jobs:
-    memory-safety:
-        runs-on: ubuntu-latest
+  quality-check:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-            - name: Install dependencies
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install -y gcc valgrind
-                  sudo apt-get install -y libyaml-dev
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc valgrind cmake make g++ libyaml-dev
 
-            # ---------------------------------------------------------
-            # 1. Build with sanitizers (ASan + UBSan)
-            # ---------------------------------------------------------
-            - name: Build ASan + UBSan binary
-              run: |
-                  mkdir -p build-asan
-                  gcc \
-                    -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 \
-                    -std=c11 \
-                    -g \
-                    -fsanitize=address,undefined \
-                    -fno-omit-frame-pointer \
-                    src/*.c -I include -lyaml \
-                    -o build-asan/dbeetle
+      # ---------------------------------------------------------
+      # 1. Build with sanitizers (ASan + UBSan)
+      # ---------------------------------------------------------
+      - name: Build ASan + UBSan binary
+        run: |
+          mkdir -p build-asan
+          gcc \
+            -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 \
+            -std=c11 \
+            -g \
+            -fsanitize=address,undefined \
+            -fno-omit-frame-pointer \
+            src/*.c -I include -lyaml \
+            -o build-asan/dbeetle
 
-            - name: Run ASan + UBSan binary
-              run: |
-                  echo "Running AddressSanitizer + UndefinedBehaviorSanitizer..."
-                  ./build-asan/dbeetle || exit 1
+      - name: Run ASan + UBSan binary
+        run: |
+          echo "Running AddressSanitizer + UndefinedBehaviorSanitizer..."
+          ./build-asan/dbeetle || exit 1
 
-            # ---------------------------------------------------------
-            # 2. Build Valgrind version (NO sanitizers)
-            # ---------------------------------------------------------
-            - name: Build Valgrind-safe binary
-              run: |
-                  mkdir -p build-valgrind
-                  gcc \
-                    -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 \
-                    -std=c11 \
-                    -g \
-                    src/*.c -I include -lyaml \
-                    -o build-valgrind/dbeetle -lm
+      # ---------------------------------------------------------
+      # 2. Build Valgrind version (NO sanitizers)
+      # ---------------------------------------------------------
+      - name: Build Valgrind-safe binary
+        run: |
+          mkdir -p build-valgrind
+          gcc \
+            -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 \
+            -std=c11 \
+            -g \
+            src/*.c -I include -lyaml \
+            -o build-valgrind/dbeetle -lm
 
-            - name: Run Valgrind memory scan
-              run: |
-                  echo "Running Valgrind deep scan..."
-                  valgrind \
-                    --leak-check=full \
-                    --show-leak-kinds=all \
-                    --track-origins=yes \
-                    --errors-for-leak-kinds=all \
-                    --error-exitcode=1 \
-                    ./build-valgrind/dbeetle
+      - name: Run Valgrind memory scan
+        run: |
+          echo "Running Valgrind deep scan..."
+          valgrind \
+            --leak-check=full \
+            --show-leak-kinds=all \
+            --track-origins=yes \
+            --errors-for-leak-kinds=all \
+            --error-exitcode=1 \
+            ./build-valgrind/dbeetle
+
+      # ---------------------------------------------------------
+      # 3. Run unit tests via CMake/CTest
+      # ---------------------------------------------------------
+      - name: Build and run unit tests
+        run: |
+          rm -rf build
+          mkdir build
+          cd build
+          cmake ..
+          cmake --build .
+          ctest -V
+
