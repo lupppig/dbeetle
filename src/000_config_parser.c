@@ -56,34 +56,65 @@ AppConfig_t *init_app_config(DBConfig_t *db, StorageConfig_t *storage, RuntimeCo
 
 ConfigParserError_t *create_parser_error() {
   ConfigParserError_t *err = malloc(sizeof(ConfigParserError_t));
+  err->code = CONFIG_OK;
+  err->line = 0;
+  err->column = 0;
 
   return err;
 }
 
-void destroy_db_config(DBConfig_t *cfg) {
+void destroy_db_config(DBConfig_t **cfg) {
   if (!cfg) return;
+  if (!*cfg) {
+    free(cfg);
+    return;
+  }
 
-  free(cfg);
+  free(*cfg);
+  *cfg = NULL;
 }
 
-void destroy_runtime_config(RuntimeConfig_t *cfg) {
+void destroy_runtime_config(RuntimeConfig_t **cfg) {
   if (!cfg) return;
+  if (!*cfg) {
+    free(cfg);
+    return;
+  }
 
-  free(cfg);
+  free(*cfg);
+  *cfg = NULL;
 }
 
-void destroy_storage_config(StorageConfig_t *cfg) {
+void destroy_storage_config(StorageConfig_t **cfg) {
   if (!cfg) return;
+  if (!*cfg) {
+    free(cfg);
+    return;
+  }
 
-  free(cfg);
+  free(*cfg);
+  *cfg = NULL;
 }
 
-void destroy_app_config(AppConfig_t *cfg) {
+void destroy_app_config(AppConfig_t **cfg) {
   if (!cfg) return;
+  if (!*cfg) {
+    free(cfg);
+    return;
+  }
 
-  free(cfg);
+  free(*cfg);
+  *cfg = NULL;
 }
 
-void destroy_parser_error(ConfigParserError_t *err) {
-  free(err);
+void destroy_parser_error(ConfigParserError_t **err) {
+  if (!err) return;
+  if (!*err) {
+    free(err);
+
+    return;
+  }
+
+  free(*err);
+  *err = NULL;
 }

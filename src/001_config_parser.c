@@ -67,6 +67,8 @@ int assign_value(config_section_t section, const char *key,
     } else if (strcmp(key, "thread_count") == 0) {
       val = strtol(value, NULL, 10);
       cfg->runtime.thread_count = (int)val;
+    } else if (strcmp(key, "tmp_dir") == 0) {
+      strncpy(cfg->runtime.temp_dir, value, BUF_LEN_S);
     } else {
       err->code = CONFIG_VALIDATION_ERROR;
       snprintf(err->message, sizeof(err->message), "Unknown runtime key: %s", key);
@@ -149,9 +151,6 @@ ConfigParserStatus_t config_load_file(const char *path, AppConfig_t *out_config,
         local_err->column = parser.problem_mark.column + 1;
       }
 
-      yaml_parser_delete(&parser);
-      fclose(fh);
-
       break;
     }
 
@@ -165,6 +164,7 @@ ConfigParserStatus_t config_load_file(const char *path, AppConfig_t *out_config,
             yaml_event_delete(&event);
             yaml_parser_delete(&parser);
             fclose(fh);
+            *err = local_err;
 
             return local_err->code;
           }
@@ -183,7 +183,6 @@ ConfigParserStatus_t config_load_file(const char *path, AppConfig_t *out_config,
         }
         break;
 
-
       case YAML_MAPPING_END_EVENT:
         current_section = SECTION_NONE;
         break;
@@ -200,7 +199,7 @@ ConfigParserStatus_t config_load_file(const char *path, AppConfig_t *out_config,
   }
 
   if (status == CONFIG_OK) {
-    destroy_parser_error(local_err);
+    destroy_parser_error(&local_err);
     if (status_text) free(status_text);
   } else {
     snprintf(local_err->message, min(sizeof(local_err->message), status_text_cap), "%s", status_text);
