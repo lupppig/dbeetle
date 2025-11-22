@@ -1,6 +1,7 @@
 #include "include/config_parser.h"
 
-DBConfig_t *init_DBConfig(const char *type, const char *uri, int timeout_seconds, int incremental_enabled) {
+
+DBConfig_t *init_db_config(const char *type, const char *uri, size_t timeout_seconds, size_t incremental_enabled) {
   DBConfig_t *cfg = malloc(sizeof(DBConfig_t));
 
   if (!cfg) return NULL;
@@ -14,7 +15,7 @@ DBConfig_t *init_DBConfig(const char *type, const char *uri, int timeout_seconds
   return cfg;
 }
 
-StorageConfig_t *init_StorageConfig(const char *output_path, const char *compression, const char *encryption_key_path, const char *remote_target) {
+StorageConfig_t *init_storage_config(const char *output_path, const char *compression, const char *encryption_key_path, const char *remote_target) {
   StorageConfig_t *cfg = malloc(sizeof(StorageConfig_t));
 
   if (!cfg) return NULL;
@@ -30,7 +31,7 @@ StorageConfig_t *init_StorageConfig(const char *output_path, const char *compres
   return cfg;
 }
 
-RuntimeConfig_t *init_RuntimeConfig(int log_level, int thread_count, const char *temp_dir) {
+RuntimeConfig_t *init_runtime_config(size_t log_level, size_t thread_count, const char *temp_dir) {
   RuntimeConfig_t *cfg = malloc(sizeof(RuntimeConfig_t));
 
   if (!cfg) return NULL;
@@ -42,7 +43,7 @@ RuntimeConfig_t *init_RuntimeConfig(int log_level, int thread_count, const char 
   return cfg;
 }
 
-AppConfig_t *init_AppConfig(DBConfig_t *db, StorageConfig_t *storage, RuntimeConfig_t *runtime) {
+AppConfig_t *init_app_config(DBConfig_t *db, StorageConfig_t *storage, RuntimeConfig_t *runtime) {
   AppConfig_t *cfg = malloc(sizeof(AppConfig_t));
 
   if (!cfg) return NULL;
@@ -51,4 +52,39 @@ AppConfig_t *init_AppConfig(DBConfig_t *db, StorageConfig_t *storage, RuntimeCon
   cfg->runtime = runtime;
 
   return cfg;
+}
+
+ConfigParserError_t *create_parser_error() {
+  ConfigParserError_t *err = malloc(sizeof(ConfigParserError_t));
+  err->code = CONFIG_OK;
+  err->line = 0;
+  err->column = 0;
+
+  return err;
+}
+
+void destroy_app_config(AppConfig_t **cfg) {
+  if (!cfg) return;
+  AppConfig_t *app_cfg = *cfg;
+  if (!app_cfg) {
+    return;
+  }
+  if (app_cfg->db) free(app_cfg->db);
+  if (app_cfg->storage) free(app_cfg->storage);
+  if (app_cfg->runtime) free(app_cfg->runtime);
+
+  free(app_cfg);
+  *cfg = NULL;
+}
+
+void destroy_parser_error(ConfigParserError_t **err) {
+  if (!err) return;
+  if (!*err) {
+    free(err);
+
+    return;
+  }
+
+  free(*err);
+  *err = NULL;
 }

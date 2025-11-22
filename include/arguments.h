@@ -2,6 +2,7 @@
 #define ARGUMENTS_H
 #include <stdbool.h>
 #include <stdio.h>
+#include "globals.h"
 
 /*
  * ==========================================================
@@ -109,12 +110,48 @@ typedef struct
     int capacity;
 } ArgParser;
 
+typedef enum {
+  ARG_SUCCESS = 0,
+  ARG_INVALID_TYPE,
+  ARG_MISSING_VALUE,
+  ARG_UNKNOWN_KEY,
+} ArgParserStatus_t;
+
+typedef struct FlagSchemaEntry {
+  char              key[BUF_LEN_S];
+  ArgType           type;
+  UT_hash_handle    hh;   // makes this struct hashable by uthash
+} FlagSchemaEntry_t;
+
+typedef struct ArgParserError {
+  ArgParserStatus_t     code;
+  char                  message[BUF_LEN_M];
+} ArgParserError_t;
+
+typedef struct Argument {
+  char              *key;
+  void              *value;
+  ArgType           type;
+  UT_hash_handle    hh; // makes this struct hashable by uthash
+} Argument_t;
+
+
 // function declaration
 ArgParser *register_args();
 void arg_parser(ArgParser *parser, int argc, char *argv[]);
 void free_args_parser(ArgParser *parser);
 void append_args(ArgParser *parser, Arguments arg);
 void free_args_parser(ArgParser *parser);
+void destroy_parsed_argument(Argument_t *arg);
+void destroy_flag_schema(FlagSchemaEntry_t *schema);
+void add_flag(FlagSchemaEntry_t **schema, const char *key, ArgType type);
+
+ArgParserStatus_t parse_args(
+  FlagSchemaEntry_t *flag_schema,
+  Argument_t **parsed_args,
+  ArgParserError_t **err,
+  int argc,
+  char *argv[]);
 
 // Macro definition
 /* ----------------------------------------------------------
