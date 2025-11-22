@@ -24,16 +24,13 @@ int main(int argc, char *argv[]) {
 
     if (status != CONFIG_OK) {
         if (err) {
-            printf("Error [%d] line %li col %li: %s\n", err->code, err->line, err->column, err->message);
-            destroy_parser_error(err);
+          printf("Error [%d] line %li col %li: %s\n", err->code, err->line, err->column, err->message);
+          destroy_parser_error(&err);
         } else {
-            printf("An unknown error occurred when parsing the config\n");
+          printf("An unknown error occurred when parsing the config\n");
         }
 
-        destroy_db_config(cfg_db);
-        destroy_runtime_config(cfg_runtime);
-        destroy_storage_config(cfg_storage);
-        destroy_app_config(cfg);
+        destroy_app_config(&cfg);
         return 1;
     }
 
@@ -43,10 +40,7 @@ int main(int argc, char *argv[]) {
 
 
     // Clean up
-    destroy_db_config(cfg_db);
-    destroy_runtime_config(cfg_runtime);
-    destroy_storage_config(cfg_storage);
-    destroy_app_config(cfg);
+    destroy_app_config(&cfg);
 
 
     printf("Config loader test passed.\n");

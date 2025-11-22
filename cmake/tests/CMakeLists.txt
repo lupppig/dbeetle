@@ -13,5 +13,5 @@ add_executable(test_config_arg_parser ${TEST_B})
 target_link_libraries(test_config_loader PRIVATE dbeetle_core)
 target_link_libraries(test_config_arg_parser PRIVATE dbeetle_core)
 
-add_test(NAME test_config_loader COMMAND test_config_loader ${CMAKE_SOURCE_DIR}/cmake/tests/config.yml "--db_type=mssql" "--db_timeout_seconds=10" "--storage_compression=deflate2" "--runtime_log_level=8")
-add_test(NAME test_config_arg_parser COMMAND test_config_arg_parser ${CMAKE_SOURCE_DIR}/cmake/tests/config.yml "--db_type=mssql" "--db_timeout_seconds=10" "--storage_compression=deflate2" "--runtime_log_level=8")
+add_test(NAME test_config_loader COMMAND test_config_loader "${CMAKE_SOURCE_DIR}/cmake/tests/config.yml")
+add_test(NAME test_config_arg_parser COMMAND test_config_arg_parser "--config_path=${CMAKE_SOURCE_DIR}/cmake/tests/config.yml"  "--db_timeout_seconds=10" "--storage_compression=deflate2" "--runtime_log_level=8" "--storage_remote_target=https://cloudflare.com/connect")

@@ -1,13 +1,18 @@
+# precedence: CLI > YAML > DEFAULTS
 db:
-  type: "postgres"
   uri: "postgres://user:pass@localhost:5432/mydb"
   timeout_seconds: 30
 storage:
   output_path: "/tmp/backups"
   compression: "gzip"
   encryption_key_path: "/home/user/.keys/backup.key"
-
+  remote_target: ""
 runtime:
   log_level: 2
   thread_count: 4
-
+  tmp_dir: "/home/user/dirs/document/dbeetle/directory/www/xyz/.open/dirs"
+  # arbitrary: ""
+#############################
+environment:
+  user: "hazel"
+  password: "demon9"
