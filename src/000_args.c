@@ -152,3 +152,11 @@ void destroy_flag_schema(FlagSchemaEntry_t *schema) {
     free(current);
   }
 }
+
+void add_flag(FlagSchemaEntry_t **schema, const char *key, ArgType type) {
+  FlagSchemaEntry_t *entry = malloc(sizeof(FlagSchemaEntry_t));
+
+  strncpy(entry->key, key, BUF_LEN_S);
+  entry->type = type;
+  HASH_ADD_STR(*schema, key, entry);
+}

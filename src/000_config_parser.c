@@ -47,9 +47,9 @@ AppConfig_t *init_app_config(DBConfig_t *db, StorageConfig_t *storage, RuntimeCo
   AppConfig_t *cfg = malloc(sizeof(AppConfig_t));
 
   if (!cfg) return NULL;
-  cfg->db = *db;
-  cfg->storage = *storage;
-  cfg->runtime = *runtime;
+  cfg->db = db;
+  cfg->storage = storage;
+  cfg->runtime = runtime;
 
   return cfg;
 }
@@ -63,47 +63,17 @@ ConfigParserError_t *create_parser_error() {
   return err;
 }
 
-void destroy_db_config(DBConfig_t **cfg) {
-  if (!cfg) return;
-  if (!*cfg) {
-    free(cfg);
-    return;
-  }
-
-  free(*cfg);
-  *cfg = NULL;
-}
-
-void destroy_runtime_config(RuntimeConfig_t **cfg) {
-  if (!cfg) return;
-  if (!*cfg) {
-    free(cfg);
-    return;
-  }
-
-  free(*cfg);
-  *cfg = NULL;
-}
-
-void destroy_storage_config(StorageConfig_t **cfg) {
-  if (!cfg) return;
-  if (!*cfg) {
-    free(cfg);
-    return;
-  }
-
-  free(*cfg);
-  *cfg = NULL;
-}
-
 void destroy_app_config(AppConfig_t **cfg) {
   if (!cfg) return;
-  if (!*cfg) {
-    free(cfg);
+  AppConfig_t *app_cfg = *cfg;
+  if (!app_cfg) {
     return;
   }
+  if (app_cfg->db) free(app_cfg->db);
+  if (app_cfg->storage) free(app_cfg->storage);
+  if (app_cfg->runtime) free(app_cfg->runtime);
 
-  free(*cfg);
+  free(app_cfg);
   *cfg = NULL;
 }
 

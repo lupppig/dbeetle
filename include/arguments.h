@@ -144,6 +144,7 @@ void append_args(ArgParser *parser, Arguments arg);
 void free_args_parser(ArgParser *parser);
 void destroy_parsed_argument(Argument_t *arg);
 void destroy_flag_schema(FlagSchemaEntry_t *schema);
+void add_flag(FlagSchemaEntry_t **schema, const char *key, ArgType type);
 
 ArgParserStatus_t parse_args(
   FlagSchemaEntry_t *flag_schema,

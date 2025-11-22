@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include <string.h>
 #include <yaml.h>
 #include "include/config_parser.h"
+#include "include/arguments.h"
 
 size_t min(size_t a, size_t b) {
   return (a > b) * a + (a <= b) * b;
@@ -9,21 +11,21 @@ size_t min(size_t a, size_t b) {
 void print_app_config(AppConfig_t *cfg) {
   if (!cfg) return;
   puts("db:");
-  printf("\t incremental_enabled: %li\n", cfg->db.incremental_enabled);
-  printf("\t timeout_seconds: %li\n", cfg->db.timeout_seconds);
-  printf("\t type: %s\n", cfg->db.type);
-  printf("\t uri: %s\n", cfg->db.uri);
+  printf("\t incremental_enabled: %li\n", cfg->db->incremental_enabled);
+  printf("\t timeout_seconds: %li\n", cfg->db->timeout_seconds);
+  printf("\t type: %s\n", cfg->db->type);
+  printf("\t uri: %s\n", cfg->db->uri);
 
   puts("runtime:");
-  printf("\t log_level: %li\n", cfg->runtime.log_level);
-  printf("\t tmp_dir: %s\n", cfg->runtime.temp_dir);
-  printf("\t thread_count: %li\n", cfg->runtime.thread_count);
+  printf("\t log_level: %li\n", cfg->runtime->log_level);
+  printf("\t tmp_dir: %s\n", cfg->runtime->temp_dir);
+  printf("\t thread_count: %li\n", cfg->runtime->thread_count);
 
   puts("storage:");
-  printf("\t compression: %s\n", cfg->storage.compression);
-  printf("\t key_path: %s\n", cfg->storage.encryption_key_path);
-  printf("\t output_path: %s\n", cfg->storage.output_path);
-  printf("\t remote_target: %s\n", cfg->storage.remote_target);
+  printf("\t compression: %s\n", cfg->storage->compression);
+  printf("\t key_path: %s\n", cfg->storage->encryption_key_path);
+  printf("\t output_path: %s\n", cfg->storage->output_path);
+  printf("\t remote_target: %s\n", cfg->storage->remote_target);
 }
 
 int assign_value(config_section_t section, const char *key,
@@ -31,19 +33,19 @@ int assign_value(config_section_t section, const char *key,
   long val;
 
   if (section == SECTION_DB) {
-    if (strcmp(key, "type") == 0) strncpy(cfg->db.type, value, BUF_LEN_XS);
-    else if (strcmp(key, "uri") == 0) strncpy(cfg->db.uri, value, BUF_LEN_S);
+    if (strcmp(key, "type") == 0) strncpy(cfg->db->type, value, BUF_LEN_XS);
+    else if (strcmp(key, "uri") == 0) strncpy(cfg->db->uri, value, BUF_LEN_S);
     else if (strcmp(key, "timeout_seconds") == 0) {
       val = strtol(value, NULL, 10);
 
       if (val <= 0) {
         err->code = CONFIG_VALIDATION_ERROR;
-        snprintf(err->message, sizeof(err->message), "db.timeout_seconds must be > 0");
+        snprintf(err->message, sizeof(err->message), "db->timeout_seconds must be > 0");
 
         return -1;
       }
 
-      cfg->db.timeout_seconds = (int)val;
+      cfg->db->timeout_seconds = (int)val;
     } else {
       err->code = CONFIG_VALIDATION_ERROR;
       snprintf(err->message, sizeof(err->message), "Unknown db key: %s", key);
@@ -51,9 +53,10 @@ int assign_value(config_section_t section, const char *key,
       return -1;
     }
   } else if (section == SECTION_STORAGE) {
-    if (strcmp(key, "output_path") == 0) strncpy(cfg->storage.output_path, value, BUF_LEN_S);
-    else if (strcmp(key, "compression") == 0) strncpy(cfg->storage.compression, value, BUF_LEN_XS);
-    else if (strcmp(key, "encryption_key_path") == 0) strncpy(cfg->storage.encryption_key_path, value, BUF_LEN_S);
+    if (strcmp(key, "output_path") == 0) strncpy(cfg->storage->output_path, value, BUF_LEN_S);
+    else if (strcmp(key, "compression") == 0) strncpy(cfg->storage->compression, value, BUF_LEN_XS);
+    else if (strcmp(key, "remote_target") == 0) strncpy(cfg->storage->remote_target, value, BUF_LEN_XS);
+    else if (strcmp(key, "encryption_key_path") == 0) strncpy(cfg->storage->encryption_key_path, value, BUF_LEN_S);
     else {
       err->code = CONFIG_VALIDATION_ERROR;
       snprintf(err->message, sizeof(err->message), "Unknown storage key: %s", key);
@@ -63,12 +66,12 @@ int assign_value(config_section_t section, const char *key,
   } else if (section == SECTION_RUNTIME) {
     if (strcmp(key, "log_level") == 0) {
       val = strtol(value, NULL, 10);
-      cfg->runtime.log_level = (int)val;
+      cfg->runtime->log_level = (int)val;
     } else if (strcmp(key, "thread_count") == 0) {
       val = strtol(value, NULL, 10);
-      cfg->runtime.thread_count = (int)val;
+      cfg->runtime->thread_count = (int)val;
     } else if (strcmp(key, "tmp_dir") == 0) {
-      strncpy(cfg->runtime.temp_dir, value, BUF_LEN_S);
+      strncpy(cfg->runtime->temp_dir, value, BUF_LEN_S);
     } else {
       err->code = CONFIG_VALIDATION_ERROR;
       snprintf(err->message, sizeof(err->message), "Unknown runtime key: %s", key);
@@ -80,7 +83,8 @@ int assign_value(config_section_t section, const char *key,
   return 0;
 }
 
-ConfigParserStatus_t config_load_file(const char *path, AppConfig_t *out_config, ConfigParserError_t **err) {
+ConfigParserStatus_t config_load_file(const char *path,
+  AppConfig_t *out_config, ConfigParserError_t **err) {
   FILE *fh = fopen(path, "r");
   yaml_parser_t parser;
   yaml_event_t event;
@@ -113,6 +117,7 @@ ConfigParserStatus_t config_load_file(const char *path, AppConfig_t *out_config,
     local_err->code = status;
     snprintf(local_err->message, sizeof(local_err->message), "Config parse error: %s", "Config file not found!");
     *err = local_err;
+    if (status_text) free(status_text);
 
     return status;
   }
@@ -123,6 +128,7 @@ ConfigParserStatus_t config_load_file(const char *path, AppConfig_t *out_config,
     local_err->code = status;
     snprintf(local_err->message, sizeof(local_err->message), "Config parse error: %s", "Failed to initialize parser!");
     *err = local_err;
+    if (status_text) free(status_text);
 
     return status;
   }
@@ -136,6 +142,7 @@ ConfigParserStatus_t config_load_file(const char *path, AppConfig_t *out_config,
     local_err->code = status;
     snprintf(local_err->message, sizeof(local_err->message), "Config parse error: %s", "No/invalid output config struct!");
     *err = local_err;
+    if (status_text) free(status_text);
 
     return status;
   }
@@ -165,6 +172,7 @@ ConfigParserStatus_t config_load_file(const char *path, AppConfig_t *out_config,
             yaml_parser_delete(&parser);
             fclose(fh);
             *err = local_err;
+            if (status_text) free(status_text);
 
             return local_err->code;
           }
@@ -179,6 +187,7 @@ ConfigParserStatus_t config_load_file(const char *path, AppConfig_t *out_config,
           else if (strcmp(current_key, "storage") == 0) current_section = SECTION_STORAGE;
           else if (strcmp(current_key, "runtime") == 0) current_section = SECTION_RUNTIME;
           else current_section = SECTION_NONE;
+          // yaml_event_delete(&event);
           continue;
         }
         break;
@@ -211,4 +220,110 @@ ConfigParserStatus_t config_load_file(const char *path, AppConfig_t *out_config,
   fclose(fh);
 
   return status;
+}
+
+AppConfig_t *merge_configs(int argc, char **argv) {
+  DBConfig_t *cfg_db = init_db_config(DEFAULT_DB_TYPE, DEFAULT_DB_URI,
+    DEFAULT_DB_TIMEOUT, true);
+  StorageConfig_t *cfg_storage = init_storage_config(DEFAULT_STORAGE_OUTPUT_PATH,
+    DEFAULT_STORAGE_COMPRESSION, DEFAULT_STORAGE_ENC_KEY_PATH, DEFAULT_STORAGE_REMOTE);
+  RuntimeConfig_t *cfg_runtime = init_runtime_config(DEFAULT_RUNTIME_LOG_LEVEL,
+    DEFAULT_RUNTIME_THREAD_COUNT, DEFAULT_RUNTIME_TMP_DIR);
+  AppConfig_t *cfg = init_app_config(cfg_db, cfg_storage, cfg_runtime);
+  ConfigParserError_t *cfg_err = NULL;
+  Argument_t *parsed_args = NULL, *config_path_entry = NULL;
+  ArgParserError_t *arg_err = NULL;
+  FlagSchemaEntry_t *schema = NULL;
+  const char *config_path = NULL;
+  ArgParserStatus_t parser_status = ARG_SUCCESS;
+  ConfigParserStatus_t loader_status = CONFIG_OK;
+
+  add_flag(&schema, CFG_DB_PREFIX(type), ARG_TYPE_STRING);
+  add_flag(&schema, CFG_DB_PREFIX(uri), ARG_TYPE_STRING);
+  add_flag(&schema, CFG_DB_PREFIX(timeout_seconds), ARG_TYPE_INT);
+  add_flag(&schema, CFG_STORAGE_PREFIX(compression), ARG_TYPE_STRING);
+  add_flag(&schema, CFG_STORAGE_PREFIX(remote_target), ARG_TYPE_STRING);
+  add_flag(&schema, CFG_RUNTIME_PREFIX(log_level), ARG_TYPE_INT);
+  add_flag(&schema, CFG_PATH, ARG_TYPE_STRING);
+  parser_status = parse_args(schema, &parsed_args, &arg_err, argc, argv);
+
+  if (parser_status != ARG_SUCCESS) {
+    if (arg_err) {
+      fprintf(stderr, "Error: %s\n", arg_err->message); // TODO: lift the error up to be handled in main
+      free(arg_err);
+    }
+
+    destroy_flag_schema(schema), destroy_parsed_argument(parsed_args);
+    destroy_app_config(&cfg);
+
+    return NULL;
+  }
+
+  if (!parsed_args) {
+    destroy_flag_schema(schema), destroy_parsed_argument(parsed_args);
+    destroy_app_config(&cfg);
+
+    return NULL;
+  }
+
+  HASH_FIND_STR(parsed_args, CFG_PATH, config_path_entry);
+  if (!config_path_entry) return NULL;
+  config_path = (const char *)config_path_entry->value;
+  loader_status = config_load_file(config_path, cfg, &cfg_err);
+
+  if (loader_status != CONFIG_OK) {
+    if (cfg_err) {
+      printf("Error [%d] line %li col %li: %s\n", cfg_err->code, cfg_err->line, cfg_err->column, cfg_err->message);
+      destroy_parser_error(&cfg_err);
+    } else {
+      printf("An unknown error occurred when parsing the config\n");
+    }
+
+    destroy_flag_schema(schema), destroy_parsed_argument(parsed_args);
+    destroy_app_config(&cfg);
+
+    return NULL;
+  }
+
+  Argument_t *current, *tmp;
+  HASH_ITER(hh, parsed_args, current, tmp) {
+    switch(current->type) {
+      case ARG_TYPE_BOOL:
+        // TODO:
+        break;
+      case ARG_TYPE_INT:
+        if (strcmp(current->key, CFG_DB_PREFIX(timeout_seconds)) == 0) {
+          cfg->db->timeout_seconds = (*(size_t *)(current->value));
+        } else if (strcmp(current->key, CFG_RUNTIME_PREFIX(log_level)) == 0) {
+          cfg->runtime->log_level = (*(size_t *)(current->value));
+        } else if (strcmp(current->key, CFG_RUNTIME_PREFIX(thread_count)) == 0) {
+          cfg->runtime->thread_count = (*(size_t *)(current->value));
+        }
+        break;
+      case ARG_TYPE_STRING:
+        if (strcmp(current->key, CFG_DB_PREFIX(type)) == 0) {
+          strcpy(cfg->db->type, (char *)current->value);
+        } else if (strcmp(current->key, CFG_DB_PREFIX(uri)) == 0) {
+          strcpy(cfg->db->uri, (char *)current->value);
+        } else if (strcmp(current->key, CFG_STORAGE_PREFIX(compression)) == 0) {
+          strcpy(cfg->storage->compression, (char *)current->value);
+        } else if (strcmp(current->key, CFG_STORAGE_PREFIX(remote_target)) == 0) {
+          strcpy(cfg->storage->remote_target, (char *)current->value);
+        } else if (strcmp(current->key, CFG_STORAGE_PREFIX(output_path)) == 0) {
+          strcpy(cfg->storage->output_path, (char *)current->value);
+        } else if (strcmp(current->key, CFG_STORAGE_PREFIX(encryption_key_path)) == 0) {
+          strcpy(cfg->storage->encryption_key_path, (char *)current->value);
+        } else if (strcmp(current->key, CFG_STORAGE_PREFIX(remote_target)) == 0) {
+          strcpy(cfg->storage->remote_target, (char *)current->value);
+        } else if (strcmp(current->key, CFG_RUNTIME_PREFIX(tmp_dir)) == 0) {
+          strcpy(cfg->runtime->temp_dir, (char *)current->value);
+        }
+        break;
+    }
+  }
+
+  destroy_parsed_argument(parsed_args);
+  destroy_flag_schema(schema);
+
+  return cfg;
 }

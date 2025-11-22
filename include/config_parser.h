@@ -11,6 +11,18 @@
 #include "globals.h"
 
 //macro defs
+#define DEFAULT_DB_URI ("default:db_uri")
+#define DEFAULT_DB_TYPE ("default:type")
+#define DEFAULT_DB_TIMEOUT (1000)
+
+#define DEFAULT_STORAGE_OUTPUT_PATH ("default:output_path")
+#define DEFAULT_STORAGE_COMPRESSION ("default:compression")
+#define DEFAULT_STORAGE_ENC_KEY_PATH ("default:encryption_key_path")
+#define DEFAULT_STORAGE_REMOTE ("default:remote")
+
+#define DEFAULT_RUNTIME_LOG_LEVEL (1)
+#define DEFAULT_RUNTIME_THREAD_COUNT (1)
+#define DEFAULT_RUNTIME_TMP_DIR ("default:tmp_dir")
 
 
 typedef struct DBConfig {
@@ -46,9 +58,9 @@ typedef struct RuntimeConfig {
 } RuntimeConfig_t;
 
 typedef struct AppConfig {
-  DBConfig_t           db;
-  StorageConfig_t      storage;
-  RuntimeConfig_t      runtime;
+  DBConfig_t           *db;
+  StorageConfig_t      *storage;
+  RuntimeConfig_t      *runtime;
 } AppConfig_t;
 
 typedef enum {
@@ -85,15 +97,13 @@ StorageConfig_t *init_storage_config(const char *output_path, const char *compre
 RuntimeConfig_t *init_runtime_config(size_t log_level, size_t thread_count, const char *temp_dir);
 
 AppConfig_t *init_app_config(DBConfig_t *db, StorageConfig_t *storage, RuntimeConfig_t *runtime);
+AppConfig_t *merge_configs(int argc, char **argv);
 
 ConfigParserError_t *create_parser_error();
 
 void print_app_config(AppConfig_t *cfg);
-void destroy_db_config(DBConfig_t *cfg);
-void destroy_storage_config(StorageConfig_t *cfg);
-void destroy_runtime_config(RuntimeConfig_t *cfg);
-void destroy_app_config(AppConfig_t *cfg);
-void destroy_parser_error(ConfigParserError_t *err);
+void destroy_app_config(AppConfig_t **cfg);
+void destroy_parser_error(ConfigParserError_t **err);
 
 
 #endif /* ___CONFIG_PARSER_H___ */
