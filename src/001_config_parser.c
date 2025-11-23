@@ -238,15 +238,16 @@ AppConfig_t *merge_configs(int argc, char **argv, StackError_t **err) {
   const char *config_path = NULL;
   ArgParserStatus_t parser_status = ARG_SUCCESS;
   ConfigParserStatus_t loader_status = CONFIG_OK;
+  char *string_config_list[7] = {CFG_DB_PREFIX(type), CFG_DB_PREFIX(backup_mode),
+    CFG_DB_PREFIX(uri), CFG_STORAGE_PREFIX(compression), CFG_STORAGE_PREFIX(remote_target),
+    CFG_PATH, NULL};
 
-  add_flag(&schema, CFG_DB_PREFIX(type), ARG_TYPE_STRING);
-  add_flag(&schema, CFG_DB_PREFIX(backup_mode), ARG_TYPE_STRING);
-  add_flag(&schema, CFG_DB_PREFIX(uri), ARG_TYPE_STRING);
+  for (size_t i = 0; string_config_list[i]; i++) {
+    add_flag(&schema, string_config_list[i], ARG_TYPE_STRING);
+  }
+
   add_flag(&schema, CFG_DB_PREFIX(timeout_seconds), ARG_TYPE_INT);
-  add_flag(&schema, CFG_STORAGE_PREFIX(compression), ARG_TYPE_STRING);
-  add_flag(&schema, CFG_STORAGE_PREFIX(remote_target), ARG_TYPE_STRING);
   add_flag(&schema, CFG_RUNTIME_PREFIX(log_level), ARG_TYPE_INT);
-  add_flag(&schema, CFG_PATH, ARG_TYPE_STRING);
   parser_status = parse_args(schema, &parsed_args, &arg_err, argc, argv);
 
   #define LOCAL_CLEANUP()\
