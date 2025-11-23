@@ -98,23 +98,25 @@ StorageConfig_t *init_storage_config(const char *output_path, const char *compre
 RuntimeConfig_t *init_runtime_config(size_t log_level, size_t thread_count, const char *temp_dir);
 
 AppConfig_t *init_app_config(DBConfig_t *db, StorageConfig_t *storage, RuntimeConfig_t *runtime);
-/**
- * merge_configs - merges cli argument configs with the yaml configs
- *  to both override the default configs
- * @argc: argument count from main
- * @argv: argument vector from main
- * @err: written stack error object on failure
- *
- * Return: AppConfig_t *
- * ~NOTE~:
- **/
-AppConfig_t *merge_configs(int argc, char **argv, StackError_t **err);
+AppConfig_t **get_app_config_handle();
 
 ConfigParserError_t *create_parser_error();
 
 void print_app_config(AppConfig_t *cfg);
 void destroy_app_config(AppConfig_t **cfg);
 void destroy_parser_error(ConfigParserError_t **err);
+/**
+ * merge_configs - merges cli argument configs with the yaml configs
+ *  to both override the default configs. then sets the global app_config
+ * @argc: argument count from main
+ * @argv: argument vector from main
+ * @err: written stack error object on failure
+ *
+ * Return: void
+ * ~NOTE~:
+ **/
+void merge_configs(int argc, char **argv, StackError_t **err);
+void set_app_config();
 
 
 #endif /* ___CONFIG_PARSER_H___ */

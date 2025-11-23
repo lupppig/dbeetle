@@ -13,6 +13,7 @@ runtime:
   log_level: 2
   thread_count: 4
   tmp_dir: "/home/user/dirs/document/dbeetle/directory/www/xyz/.open/dirs"
+  # TODO: add validation for the values of both the config and the cli args
   # arbitrary: "" #testing with unknown keys
 #############################
 environment:

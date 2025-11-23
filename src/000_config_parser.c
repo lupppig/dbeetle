@@ -64,7 +64,7 @@ ConfigParserError_t *create_parser_error() {
 
 void destroy_app_config(AppConfig_t **cfg) {
   if (!cfg) return;
-  AppConfig_t *app_cfg = *cfg;
+  AppConfig_t *app_cfg = *cfg, **app_cfg_ref = get_app_config_handle();
   if (!app_cfg) {
     return;
   }
@@ -74,6 +74,7 @@ void destroy_app_config(AppConfig_t **cfg) {
 
   free(app_cfg);
   *cfg = NULL;
+  *app_cfg_ref = NULL;
 }
 
 void destroy_parser_error(ConfigParserError_t **err) {
