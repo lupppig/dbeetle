@@ -8,7 +8,7 @@ if(NOT CMAKE_C_COMPILER)
 endif()
 
 # Collect all C source files
-file(GLOB SRC_FILES "../src/*.c")
+file(GLOB SRC_FILES "../src/*.c" "../src/utils/*.c")
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(YAML REQUIRED yaml-0.1)

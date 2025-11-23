@@ -7,13 +7,13 @@
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
-        fprintf(stderr, "Usage: %s <config.yml>\n", argv[0]);
-        return 1;
+      fprintf(stderr, "Usage: %s <config.yml>\n", argv[0]);
+      return 1;
     }
 
     const char *config_path = argv[1];
 
-    DBConfig_t *cfg_db = init_db_config("passed:postgres", "passed:https://db", 5000, 1);
+    DBConfig_t *cfg_db = init_db_config("passed:postgres", "passed:https://db", "passed:full", 5000);
     StorageConfig_t *cfg_storage = init_storage_config("passed:./tests", "passed:shannon", "passed:./pat", "passed:http://remote");
     RuntimeConfig_t *cfg_runtime = init_runtime_config(3, 2, "passed:locals");
     AppConfig_t *cfg = init_app_config(cfg_db, cfg_storage, cfg_runtime);

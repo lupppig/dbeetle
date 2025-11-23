@@ -11,9 +11,9 @@ size_t min(size_t a, size_t b) {
 void print_app_config(AppConfig_t *cfg) {
   if (!cfg) return;
   puts("db:");
-  printf("\t incremental_enabled: %li\n", cfg->db->incremental_enabled);
   printf("\t timeout_seconds: %li\n", cfg->db->timeout_seconds);
   printf("\t type: %s\n", cfg->db->type);
+  printf("\t backup_mode: %s\n", cfg->db->backup_mode);
   printf("\t uri: %s\n", cfg->db->uri);
 
   puts("runtime:");
@@ -35,6 +35,7 @@ int assign_value(config_section_t section, const char *key,
   if (section == SECTION_DB) {
     if (strcmp(key, "type") == 0) strncpy(cfg->db->type, value, BUF_LEN_XS);
     else if (strcmp(key, "uri") == 0) strncpy(cfg->db->uri, value, BUF_LEN_S);
+    else if (strcmp(key, "backup_mode") == 0) strncpy(cfg->db->backup_mode, value, BUF_LEN_XS);
     else if (strcmp(key, "timeout_seconds") == 0) {
       val = strtol(value, NULL, 10);
 
@@ -222,9 +223,9 @@ ConfigParserStatus_t config_load_file(const char *path,
   return status;
 }
 
-AppConfig_t *merge_configs(int argc, char **argv) {
+AppConfig_t *merge_configs(int argc, char **argv, StackError_t **err) {
   DBConfig_t *cfg_db = init_db_config(DEFAULT_DB_TYPE, DEFAULT_DB_URI,
-    DEFAULT_DB_TIMEOUT, true);
+    DEFAULT_DB_BACKUP_MODE, DEFAULT_DB_TIMEOUT);
   StorageConfig_t *cfg_storage = init_storage_config(DEFAULT_STORAGE_OUTPUT_PATH,
     DEFAULT_STORAGE_COMPRESSION, DEFAULT_STORAGE_ENC_KEY_PATH, DEFAULT_STORAGE_REMOTE);
   RuntimeConfig_t *cfg_runtime = init_runtime_config(DEFAULT_RUNTIME_LOG_LEVEL,
@@ -237,50 +238,62 @@ AppConfig_t *merge_configs(int argc, char **argv) {
   const char *config_path = NULL;
   ArgParserStatus_t parser_status = ARG_SUCCESS;
   ConfigParserStatus_t loader_status = CONFIG_OK;
+  char *string_config_list[7] = {CFG_DB_PREFIX(type), CFG_DB_PREFIX(backup_mode),
+    CFG_DB_PREFIX(uri), CFG_STORAGE_PREFIX(compression), CFG_STORAGE_PREFIX(remote_target),
+    CFG_PATH, NULL};
 
-  add_flag(&schema, CFG_DB_PREFIX(type), ARG_TYPE_STRING);
-  add_flag(&schema, CFG_DB_PREFIX(uri), ARG_TYPE_STRING);
+  for (size_t i = 0; string_config_list[i]; i++) {
+    add_flag(&schema, string_config_list[i], ARG_TYPE_STRING);
+  }
+
   add_flag(&schema, CFG_DB_PREFIX(timeout_seconds), ARG_TYPE_INT);
-  add_flag(&schema, CFG_STORAGE_PREFIX(compression), ARG_TYPE_STRING);
-  add_flag(&schema, CFG_STORAGE_PREFIX(remote_target), ARG_TYPE_STRING);
   add_flag(&schema, CFG_RUNTIME_PREFIX(log_level), ARG_TYPE_INT);
-  add_flag(&schema, CFG_PATH, ARG_TYPE_STRING);
   parser_status = parse_args(schema, &parsed_args, &arg_err, argc, argv);
+
+  #define LOCAL_CLEANUP()\
+  {\
+    destroy_flag_schema(schema);\
+    destroy_parsed_argument(parsed_args);\
+    destroy_app_config(&cfg);\
+  }
 
   if (parser_status != ARG_SUCCESS) {
     if (arg_err) {
-      fprintf(stderr, "Error: %s\n", arg_err->message); // TODO: lift the error up to be handled in main
+      *err = ___unsafe_to_stack_error___(arg_err);
       free(arg_err);
     }
 
-    destroy_flag_schema(schema), destroy_parsed_argument(parsed_args);
-    destroy_app_config(&cfg);
+    LOCAL_CLEANUP();
 
     return NULL;
   }
 
-  if (!parsed_args) {
-    destroy_flag_schema(schema), destroy_parsed_argument(parsed_args);
-    destroy_app_config(&cfg);
-
-    return NULL;
-  }
+  if (!parsed_args) { /* TODO: warn 'no argument provided, using platform's default */ }
 
   HASH_FIND_STR(parsed_args, CFG_PATH, config_path_entry);
-  if (!config_path_entry) return NULL;
+
+  if (!config_path_entry) {
+    *err = create_stack_error();
+    strcpy((*err)->message, "no config path provided in argument");
+
+    LOCAL_CLEANUP();
+
+    return NULL;
+  }
+
   config_path = (const char *)config_path_entry->value;
   loader_status = config_load_file(config_path, cfg, &cfg_err);
 
   if (loader_status != CONFIG_OK) {
     if (cfg_err) {
-      printf("Error [%d] line %li col %li: %s\n", cfg_err->code, cfg_err->line, cfg_err->column, cfg_err->message);
+      *err = ___unsafe_to_stack_error___(cfg_err);
       destroy_parser_error(&cfg_err);
     } else {
-      printf("An unknown error occurred when parsing the config\n");
+      *err = create_stack_error();
+      strcpy((*err)->message, "An unknown error occurred while parsing the config");
     }
 
-    destroy_flag_schema(schema), destroy_parsed_argument(parsed_args);
-    destroy_app_config(&cfg);
+    LOCAL_CLEANUP();
 
     return NULL;
   }
@@ -305,6 +318,8 @@ AppConfig_t *merge_configs(int argc, char **argv) {
           strcpy(cfg->db->type, (char *)current->value);
         } else if (strcmp(current->key, CFG_DB_PREFIX(uri)) == 0) {
           strcpy(cfg->db->uri, (char *)current->value);
+        } else if (strcmp(current->key, CFG_DB_PREFIX(backup_mode)) == 0) {
+          strcpy(cfg->db->backup_mode, (char *)current->value);
         } else if (strcmp(current->key, CFG_STORAGE_PREFIX(compression)) == 0) {
           strcpy(cfg->storage->compression, (char *)current->value);
         } else if (strcmp(current->key, CFG_STORAGE_PREFIX(remote_target)) == 0) {

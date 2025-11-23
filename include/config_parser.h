@@ -11,8 +11,9 @@
 #include "globals.h"
 
 //macro defs
-#define DEFAULT_DB_URI ("default:db_uri")
+#define DEFAULT_DB_URI ("default:uri")
 #define DEFAULT_DB_TYPE ("default:type")
+#define DEFAULT_DB_BACKUP_MODE ("default:backup_mode")
 #define DEFAULT_DB_TIMEOUT (1000)
 
 #define DEFAULT_STORAGE_OUTPUT_PATH ("default:output_path")
@@ -27,9 +28,9 @@
 
 typedef struct DBConfig {
   char             type[BUF_LEN_XS];
+  char             backup_mode[BUF_LEN_XS];
   char             uri[BUF_LEN_S];
   size_t           timeout_seconds;
-  size_t           incremental_enabled;
 } DBConfig_t;
 
 typedef enum {
@@ -64,7 +65,7 @@ typedef struct AppConfig {
 } AppConfig_t;
 
 typedef enum {
-  CONFIG_OK = 0,
+  CONFIG_OK = 0, //order important for casting into stack error
   CONFIG_FILE_NOT_FOUND,
   CONFIG_PARSE_ERROR,
   CONFIG_VALIDATION_ERROR,
@@ -73,9 +74,9 @@ typedef enum {
 
 typedef struct ConfigParserError {
   ConfigParserStatus_t        code;
-  char                  message[BUF_LEN_M];
-  size_t                line;
-  size_t                column;
+  char                        message[BUF_LEN_M];
+  size_t                      line;
+  size_t                      column;
 } ConfigParserError_t;
 
 
@@ -90,14 +91,24 @@ typedef struct ConfigParserError {
  **/
 ConfigParserStatus_t config_load_file(const char *path, AppConfig_t *out_config, ConfigParserError_t **err);
 
-DBConfig_t *init_db_config(const char *type, const char *uri, size_t timeout_seconds, size_t incremental_enabled);
+DBConfig_t *init_db_config(const char *type, const char *uri, const char *backup_mode, size_t timeout_seconds);
 
 StorageConfig_t *init_storage_config(const char *output_path, const char *compression, const char *encryption_key_path, const char *remote_target);
 
 RuntimeConfig_t *init_runtime_config(size_t log_level, size_t thread_count, const char *temp_dir);
 
 AppConfig_t *init_app_config(DBConfig_t *db, StorageConfig_t *storage, RuntimeConfig_t *runtime);
-AppConfig_t *merge_configs(int argc, char **argv);
+/**
+ * merge_configs - merges cli argument configs with the yaml configs
+ *  to both override the default configs
+ * @argc: argument count from main
+ * @argv: argument vector from main
+ * @err: written stack error object on failure
+ *
+ * Return: AppConfig_t *
+ * ~NOTE~:
+ **/
+AppConfig_t *merge_configs(int argc, char **argv, StackError_t **err);
 
 ConfigParserError_t *create_parser_error();
 

@@ -1,16 +1,15 @@
 #include "include/config_parser.h"
 
-
-DBConfig_t *init_db_config(const char *type, const char *uri, size_t timeout_seconds, size_t incremental_enabled) {
+DBConfig_t *init_db_config(const char *type, const char *uri, const char *backup_mode, size_t timeout_seconds) {
   DBConfig_t *cfg = malloc(sizeof(DBConfig_t));
 
   if (!cfg) return NULL;
   strncpy(cfg->type, type, sizeof(cfg->type) - 1);
   cfg->type[sizeof(cfg->type) - 1] = '\0';
   strncpy(cfg->uri, uri, sizeof(cfg->uri) - 1);
+  strncpy(cfg->backup_mode, backup_mode, sizeof(cfg->backup_mode) - 1);
   cfg->uri[sizeof(cfg->uri) - 1] = '\0';
   cfg->timeout_seconds = timeout_seconds;
-  cfg->incremental_enabled = incremental_enabled;
 
   return cfg;
 }
