@@ -14,5 +14,21 @@
 #define CFG_RUNTIME_PREFIX(x) ("runtime_"#x)
 #define CFG_PATH ("config_path")
 
+typedef enum {
+  EXEC_SUCCESS = 0,
+  EXEC_FAILURE = -1,
+} StackStatus_t;
+
+typedef struct StackError {
+  StackStatus_t        code;
+  char                 message[BUF_LEN_M];
+} StackError_t;
+
+
+StackError_t *create_stack_error();
+StackError_t *___unsafe_to_stack_error___(void *err);
+
+void destroy_stack_error(StackError_t *err);
+
 
 #endif /* ___GLOBALS_H___ */

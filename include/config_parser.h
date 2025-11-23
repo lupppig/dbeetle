@@ -65,7 +65,7 @@ typedef struct AppConfig {
 } AppConfig_t;
 
 typedef enum {
-  CONFIG_OK = 0,
+  CONFIG_OK = 0, //order important for casting into stack error
   CONFIG_FILE_NOT_FOUND,
   CONFIG_PARSE_ERROR,
   CONFIG_VALIDATION_ERROR,
@@ -74,9 +74,9 @@ typedef enum {
 
 typedef struct ConfigParserError {
   ConfigParserStatus_t        code;
-  char                  message[BUF_LEN_M];
-  size_t                line;
-  size_t                column;
+  char                        message[BUF_LEN_M];
+  size_t                      line;
+  size_t                      column;
 } ConfigParserError_t;
 
 
@@ -98,7 +98,7 @@ StorageConfig_t *init_storage_config(const char *output_path, const char *compre
 RuntimeConfig_t *init_runtime_config(size_t log_level, size_t thread_count, const char *temp_dir);
 
 AppConfig_t *init_app_config(DBConfig_t *db, StorageConfig_t *storage, RuntimeConfig_t *runtime);
-AppConfig_t *merge_configs(int argc, char **argv);
+AppConfig_t *merge_configs(int argc, char **argv, StackError_t **err);
 
 ConfigParserError_t *create_parser_error();
 

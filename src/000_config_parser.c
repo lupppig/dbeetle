@@ -1,6 +1,5 @@
 #include "include/config_parser.h"
 
-
 DBConfig_t *init_db_config(const char *type, const char *uri, const char *backup_mode, size_t timeout_seconds) {
   DBConfig_t *cfg = malloc(sizeof(DBConfig_t));
 

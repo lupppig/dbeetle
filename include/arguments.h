@@ -111,7 +111,7 @@ typedef struct
 } ArgParser;
 
 typedef enum {
-  ARG_SUCCESS = 0,
+  ARG_SUCCESS = 0, //order important for casting into stack error
   ARG_INVALID_TYPE,
   ARG_MISSING_VALUE,
   ARG_UNKNOWN_KEY,
