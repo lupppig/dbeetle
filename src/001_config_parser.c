@@ -11,9 +11,9 @@ size_t min(size_t a, size_t b) {
 void print_app_config(AppConfig_t *cfg) {
   if (!cfg) return;
   puts("db:");
-  printf("\t incremental_enabled: %li\n", cfg->db->incremental_enabled);
   printf("\t timeout_seconds: %li\n", cfg->db->timeout_seconds);
   printf("\t type: %s\n", cfg->db->type);
+  printf("\t backup_mode: %s\n", cfg->db->backup_mode);
   printf("\t uri: %s\n", cfg->db->uri);
 
   puts("runtime:");
@@ -35,6 +35,7 @@ int assign_value(config_section_t section, const char *key,
   if (section == SECTION_DB) {
     if (strcmp(key, "type") == 0) strncpy(cfg->db->type, value, BUF_LEN_XS);
     else if (strcmp(key, "uri") == 0) strncpy(cfg->db->uri, value, BUF_LEN_S);
+    else if (strcmp(key, "backup_mode") == 0) strncpy(cfg->db->backup_mode, value, BUF_LEN_XS);
     else if (strcmp(key, "timeout_seconds") == 0) {
       val = strtol(value, NULL, 10);
 
@@ -224,7 +225,7 @@ ConfigParserStatus_t config_load_file(const char *path,
 
 AppConfig_t *merge_configs(int argc, char **argv) {
   DBConfig_t *cfg_db = init_db_config(DEFAULT_DB_TYPE, DEFAULT_DB_URI,
-    DEFAULT_DB_TIMEOUT, true);
+    DEFAULT_DB_BACKUP_MODE, DEFAULT_DB_TIMEOUT);
   StorageConfig_t *cfg_storage = init_storage_config(DEFAULT_STORAGE_OUTPUT_PATH,
     DEFAULT_STORAGE_COMPRESSION, DEFAULT_STORAGE_ENC_KEY_PATH, DEFAULT_STORAGE_REMOTE);
   RuntimeConfig_t *cfg_runtime = init_runtime_config(DEFAULT_RUNTIME_LOG_LEVEL,
@@ -239,6 +240,7 @@ AppConfig_t *merge_configs(int argc, char **argv) {
   ConfigParserStatus_t loader_status = CONFIG_OK;
 
   add_flag(&schema, CFG_DB_PREFIX(type), ARG_TYPE_STRING);
+  add_flag(&schema, CFG_DB_PREFIX(backup_mode), ARG_TYPE_STRING);
   add_flag(&schema, CFG_DB_PREFIX(uri), ARG_TYPE_STRING);
   add_flag(&schema, CFG_DB_PREFIX(timeout_seconds), ARG_TYPE_INT);
   add_flag(&schema, CFG_STORAGE_PREFIX(compression), ARG_TYPE_STRING);
@@ -305,6 +307,8 @@ AppConfig_t *merge_configs(int argc, char **argv) {
           strcpy(cfg->db->type, (char *)current->value);
         } else if (strcmp(current->key, CFG_DB_PREFIX(uri)) == 0) {
           strcpy(cfg->db->uri, (char *)current->value);
+        } else if (strcmp(current->key, CFG_DB_PREFIX(backup_mode)) == 0) {
+          strcpy(cfg->db->backup_mode, (char *)current->value);
         } else if (strcmp(current->key, CFG_STORAGE_PREFIX(compression)) == 0) {
           strcpy(cfg->storage->compression, (char *)current->value);
         } else if (strcmp(current->key, CFG_STORAGE_PREFIX(remote_target)) == 0) {

@@ -11,8 +11,9 @@
 #include "globals.h"
 
 //macro defs
-#define DEFAULT_DB_URI ("default:db_uri")
+#define DEFAULT_DB_URI ("default:uri")
 #define DEFAULT_DB_TYPE ("default:type")
+#define DEFAULT_DB_BACKUP_MODE ("default:backup_mode")
 #define DEFAULT_DB_TIMEOUT (1000)
 
 #define DEFAULT_STORAGE_OUTPUT_PATH ("default:output_path")
@@ -27,9 +28,9 @@
 
 typedef struct DBConfig {
   char             type[BUF_LEN_XS];
+  char             backup_mode[BUF_LEN_XS];
   char             uri[BUF_LEN_S];
   size_t           timeout_seconds;
-  size_t           incremental_enabled;
 } DBConfig_t;
 
 typedef enum {
@@ -90,7 +91,7 @@ typedef struct ConfigParserError {
  **/
 ConfigParserStatus_t config_load_file(const char *path, AppConfig_t *out_config, ConfigParserError_t **err);
 
-DBConfig_t *init_db_config(const char *type, const char *uri, size_t timeout_seconds, size_t incremental_enabled);
+DBConfig_t *init_db_config(const char *type, const char *uri, const char *backup_mode, size_t timeout_seconds);
 
 StorageConfig_t *init_storage_config(const char *output_path, const char *compression, const char *encryption_key_path, const char *remote_target);
 
