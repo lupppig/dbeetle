@@ -31,7 +31,7 @@ jobs:
             -g \
             -fsanitize=address,undefined \
             -fno-omit-frame-pointer \
-            src/*.c -I include -lyaml \
+            src/*.c src/utils/*.c -I include -lyaml \
             -o build-asan/dbeetle
 
       - name: Run ASan + UBSan binary
@@ -49,7 +49,7 @@ jobs:
             -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 \
             -std=c11 \
             -g \
-            src/*.c -I include -lyaml \
+            src/*.c src/utils/*.c -I include -lyaml \
             -o build-valgrind/dbeetle -lm
 
       - name: Run Valgrind memory scan
