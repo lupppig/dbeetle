@@ -223,7 +223,7 @@ ConfigParserStatus_t config_load_file(const char *path,
   return status;
 }
 
-AppConfig_t *merge_configs(int argc, char **argv) {
+AppConfig_t *merge_configs(int argc, char **argv, StackError_t **err) {
   DBConfig_t *cfg_db = init_db_config(DEFAULT_DB_TYPE, DEFAULT_DB_URI,
     DEFAULT_DB_BACKUP_MODE, DEFAULT_DB_TIMEOUT);
   StorageConfig_t *cfg_storage = init_storage_config(DEFAULT_STORAGE_OUTPUT_PATH,
@@ -249,40 +249,50 @@ AppConfig_t *merge_configs(int argc, char **argv) {
   add_flag(&schema, CFG_PATH, ARG_TYPE_STRING);
   parser_status = parse_args(schema, &parsed_args, &arg_err, argc, argv);
 
+  #define LOCAL_CLEANUP()\
+  {\
+    destroy_flag_schema(schema);\
+    destroy_parsed_argument(parsed_args);\
+    destroy_app_config(&cfg);\
+  }
+
   if (parser_status != ARG_SUCCESS) {
     if (arg_err) {
-      fprintf(stderr, "Error: %s\n", arg_err->message); // TODO: lift the error up to be handled in main
+      *err = ___unsafe_to_stack_error___(arg_err);
       free(arg_err);
     }
 
-    destroy_flag_schema(schema), destroy_parsed_argument(parsed_args);
-    destroy_app_config(&cfg);
+    LOCAL_CLEANUP();
 
     return NULL;
   }
 
-  if (!parsed_args) {
-    destroy_flag_schema(schema), destroy_parsed_argument(parsed_args);
-    destroy_app_config(&cfg);
-
-    return NULL;
-  }
+  if (!parsed_args) { /* TODO: warn 'no argument provided, using platform's default */ }
 
   HASH_FIND_STR(parsed_args, CFG_PATH, config_path_entry);
-  if (!config_path_entry) return NULL;
+
+  if (!config_path_entry) {
+    *err = create_stack_error();
+    strcpy((*err)->message, "no config path provided in argument");
+
+    LOCAL_CLEANUP();
+
+    return NULL;
+  }
+
   config_path = (const char *)config_path_entry->value;
   loader_status = config_load_file(config_path, cfg, &cfg_err);
 
   if (loader_status != CONFIG_OK) {
     if (cfg_err) {
-      printf("Error [%d] line %li col %li: %s\n", cfg_err->code, cfg_err->line, cfg_err->column, cfg_err->message);
+      *err = ___unsafe_to_stack_error___(cfg_err);
       destroy_parser_error(&cfg_err);
     } else {
-      printf("An unknown error occurred when parsing the config\n");
+      *err = create_stack_error();
+      strcpy((*err)->message, "An unknown error occurred while parsing the config");
     }
 
-    destroy_flag_schema(schema), destroy_parsed_argument(parsed_args);
-    destroy_app_config(&cfg);
+    LOCAL_CLEANUP();
 
     return NULL;
   }
