@@ -223,14 +223,15 @@ ConfigParserStatus_t config_load_file(const char *path,
   return status;
 }
 
-AppConfig_t *merge_configs(int argc, char **argv, StackError_t **err) {
+void merge_configs(int argc, char **argv, StackError_t **err) {
   DBConfig_t *cfg_db = init_db_config(DEFAULT_DB_TYPE, DEFAULT_DB_URI,
     DEFAULT_DB_BACKUP_MODE, DEFAULT_DB_TIMEOUT);
   StorageConfig_t *cfg_storage = init_storage_config(DEFAULT_STORAGE_OUTPUT_PATH,
     DEFAULT_STORAGE_COMPRESSION, DEFAULT_STORAGE_ENC_KEY_PATH, DEFAULT_STORAGE_REMOTE);
   RuntimeConfig_t *cfg_runtime = init_runtime_config(DEFAULT_RUNTIME_LOG_LEVEL,
     DEFAULT_RUNTIME_THREAD_COUNT, DEFAULT_RUNTIME_TMP_DIR);
-  AppConfig_t *cfg = init_app_config(cfg_db, cfg_storage, cfg_runtime);
+  AppConfig_t *cfg = init_app_config(cfg_db, cfg_storage, cfg_runtime),
+  **app_config = get_app_config_handle();
   ConfigParserError_t *cfg_err = NULL;
   Argument_t *parsed_args = NULL, *config_path_entry = NULL;
   ArgParserError_t *arg_err = NULL;
@@ -265,7 +266,7 @@ AppConfig_t *merge_configs(int argc, char **argv, StackError_t **err) {
 
     LOCAL_CLEANUP();
 
-    return NULL;
+    return;
   }
 
   if (!parsed_args) { /* TODO: warn 'no argument provided, using platform's default */ }
@@ -278,7 +279,7 @@ AppConfig_t *merge_configs(int argc, char **argv, StackError_t **err) {
 
     LOCAL_CLEANUP();
 
-    return NULL;
+    return;
   }
 
   config_path = (const char *)config_path_entry->value;
@@ -295,7 +296,7 @@ AppConfig_t *merge_configs(int argc, char **argv, StackError_t **err) {
 
     LOCAL_CLEANUP();
 
-    return NULL;
+    return;
   }
 
   Argument_t *current, *tmp;
@@ -339,6 +340,5 @@ AppConfig_t *merge_configs(int argc, char **argv, StackError_t **err) {
 
   destroy_parsed_argument(parsed_args);
   destroy_flag_schema(schema);
-
-  return cfg;
+  *app_config = cfg;
 }

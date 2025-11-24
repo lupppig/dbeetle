@@ -1,4 +1,11 @@
 #include "include/globals.h"
+#include "include/config_parser.h"
+
+static AppConfig_t *app_config = NULL;
+
+AppConfig_t **get_app_config_handle() {
+  return &app_config;
+}
 
 StackError_t *___unsafe_to_stack_error___(void *err) {
   StackError_t *dst = NULL;

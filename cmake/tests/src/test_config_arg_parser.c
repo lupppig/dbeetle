@@ -6,8 +6,11 @@
 int main(int argc, char *argv[]) {
     // Step 1: Create schema
     StackError_t *err = NULL;
-    AppConfig_t *cfg = merge_configs(argc, argv, &err);
+    AppConfig_t **cfg_ptr = get_app_config_handle(), *cfg = NULL;
+    merge_configs(argc, argv, &err);
     int code = 0;
+
+    if (cfg_ptr) cfg = *cfg_ptr;
 
     if (!cfg) {
       if (err) {
