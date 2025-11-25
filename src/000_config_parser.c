@@ -42,13 +42,35 @@ RuntimeConfig_t *init_runtime_config(size_t log_level, size_t thread_count, cons
   return cfg;
 }
 
-AppConfig_t *init_app_config(DBConfig_t *db, StorageConfig_t *storage, RuntimeConfig_t *runtime) {
+PlatformConfig_t *init_platform_config(float version) {
+  PlatformConfig_t *cfg = malloc(sizeof(PlatformConfig_t));
+
+  if (!cfg) return NULL;
+  cfg->version = version;
+
+  return cfg;
+}
+
+PluginConfig_t *init_plugin_config(const char *dir) {
+  PluginConfig_t *cfg = malloc(sizeof(PluginConfig_t));
+
+  if (!cfg) return NULL;
+  strncpy(cfg->dir, dir, sizeof(cfg->dir) - 1);
+  cfg->dir[sizeof(cfg->dir) - 1] = '\0';
+
+  return cfg;
+}
+
+AppConfig_t *init_app_config(DBConfig_t *db, StorageConfig_t *storage, RuntimeConfig_t *runtime,
+  PlatformConfig_t *platform, PluginConfig_t *plugin) {
   AppConfig_t *cfg = malloc(sizeof(AppConfig_t));
 
   if (!cfg) return NULL;
   cfg->db = db;
   cfg->storage = storage;
   cfg->runtime = runtime;
+  cfg->platform = platform;
+  cfg->plugin = plugin;
 
   return cfg;
 }
@@ -71,6 +93,8 @@ void destroy_app_config(AppConfig_t **cfg) {
   if (app_cfg->db) free(app_cfg->db);
   if (app_cfg->storage) free(app_cfg->storage);
   if (app_cfg->runtime) free(app_cfg->runtime);
+  if (app_cfg->platform) free(app_cfg->platform);
+  if (app_cfg->plugin) free(app_cfg->plugin);
 
   free(app_cfg);
   *cfg = NULL;

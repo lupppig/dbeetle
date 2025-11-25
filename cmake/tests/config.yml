@@ -1,6 +1,9 @@
 # precedence: CLI > YAML > DEFAULTS
+platform:
+  version: 1.0 # plugin version compatibility will be based on the platform's current 'version'
+  # version: 3x.. #test with invalid
 db:
-  # type: "postgres"
+  # type: "postgres" # driver loaded will be based on the 'type'
   uri: "postgres://user:pass@localhost:5432/mydb"
   timeout_seconds: 30
   backup_mode: "incremental/full/schema-only"
@@ -16,6 +19,8 @@ runtime:
   # TODO: add validation for the values of both the config and the cli args
   # arbitrary: "" #testing with unknown keys
 #############################
+plugin:
+  dir: "/home/toughware/open-source/dbeetle/assets/plugins"
 environment:
   user: "hazel"
   password: "demon9"

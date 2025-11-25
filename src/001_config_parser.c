@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <yaml.h>
 #include "include/config_parser.h"
@@ -26,11 +27,18 @@ void print_app_config(AppConfig_t *cfg) {
   printf("\t key_path: %s\n", cfg->storage->encryption_key_path);
   printf("\t output_path: %s\n", cfg->storage->output_path);
   printf("\t remote_target: %s\n", cfg->storage->remote_target);
+
+  puts("platform:");
+  printf("\t version: %.2f\n", cfg->platform->version);
+
+  puts("plugin:");
+  printf("\t dir: %s\n", cfg->plugin->dir);
 }
 
 int assign_value(config_section_t section, const char *key,
   const char *value, AppConfig_t *cfg, ConfigParserError_t *err) {
   long val;
+
 
   if (section == SECTION_DB) {
     if (strcmp(key, "type") == 0) strncpy(cfg->db->type, value, BUF_LEN_XS);
@@ -61,6 +69,33 @@ int assign_value(config_section_t section, const char *key,
     else {
       err->code = CONFIG_VALIDATION_ERROR;
       snprintf(err->message, sizeof(err->message), "Unknown storage key: %s", key);
+
+      return -1;
+    }
+  } else if (section == SECTION_PLATFORM) {
+    if (strcmp(key, "version") == 0) {
+      char *end = NULL;
+      val = strtof(value, &end);
+      if (*end != '\0') {
+        err->code = CONFIG_VALIDATION_ERROR;
+        snprintf(err->message, sizeof(err->message), "Invalid platform version: %s", value);
+
+        return -1;
+      }
+      cfg->platform->version = val;
+    } else {
+      err->code = CONFIG_VALIDATION_ERROR;
+      snprintf(err->message, sizeof(err->message), "Unknown platform key: %s", key);
+
+      return -1;
+    }
+  } else if (section == SECTION_PLUGIN) {
+    if (strcmp(key, "dir") == 0) {
+       strncpy(cfg->plugin->dir, value, BUF_LEN_S);
+    }
+    else {
+      err->code = CONFIG_VALIDATION_ERROR;
+      snprintf(err->message, sizeof(err->message), "Unknown plugin key: %s", key);
 
       return -1;
     }
@@ -187,6 +222,8 @@ ConfigParserStatus_t config_load_file(const char *path,
           if (strcmp(current_key, "db") == 0) current_section = SECTION_DB;
           else if (strcmp(current_key, "storage") == 0) current_section = SECTION_STORAGE;
           else if (strcmp(current_key, "runtime") == 0) current_section = SECTION_RUNTIME;
+          else if (strcmp(current_key, "platform") == 0) current_section = SECTION_PLATFORM;
+          else if (strcmp(current_key, "plugin") == 0) current_section = SECTION_PLUGIN;
           else current_section = SECTION_NONE;
           // yaml_event_delete(&event);
           continue;
@@ -230,7 +267,9 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
     DEFAULT_STORAGE_COMPRESSION, DEFAULT_STORAGE_ENC_KEY_PATH, DEFAULT_STORAGE_REMOTE);
   RuntimeConfig_t *cfg_runtime = init_runtime_config(DEFAULT_RUNTIME_LOG_LEVEL,
     DEFAULT_RUNTIME_THREAD_COUNT, DEFAULT_RUNTIME_TMP_DIR);
-  AppConfig_t *cfg = init_app_config(cfg_db, cfg_storage, cfg_runtime),
+  PlatformConfig_t *cfg_platform = init_platform_config(DEFAULT_PLATFORM_VERSION);
+  PluginConfig_t *cfg_plugin = init_plugin_config(DEFAULT_PLUGIN_PATH);
+  AppConfig_t *cfg = init_app_config(cfg_db, cfg_storage, cfg_runtime, cfg_platform, cfg_plugin),
   **app_config = get_app_config_handle();
   ConfigParserError_t *cfg_err = NULL;
   Argument_t *parsed_args = NULL, *config_path_entry = NULL;
@@ -239,9 +278,10 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
   const char *config_path = NULL;
   ArgParserStatus_t parser_status = ARG_SUCCESS;
   ConfigParserStatus_t loader_status = CONFIG_OK;
-  char *string_config_list[7] = {CFG_DB_PREFIX(type), CFG_DB_PREFIX(backup_mode),
+  char *string_config_list[9] = {CFG_DB_PREFIX(type), CFG_DB_PREFIX(backup_mode),
     CFG_DB_PREFIX(uri), CFG_STORAGE_PREFIX(compression), CFG_STORAGE_PREFIX(remote_target),
-    CFG_PATH, NULL};
+    CFG_PATH, CFG_PLUGIN_PREFIX(dir), NULL};
+
 
   for (size_t i = 0; string_config_list[i]; i++) {
     add_flag(&schema, string_config_list[i], ARG_TYPE_STRING);
@@ -249,6 +289,8 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
 
   add_flag(&schema, CFG_DB_PREFIX(timeout_seconds), ARG_TYPE_INT);
   add_flag(&schema, CFG_RUNTIME_PREFIX(log_level), ARG_TYPE_INT);
+  add_flag(&schema, CFG_PLATFORM_PREFIX(version), ARG_TYPE_FLOAT);
+
   parser_status = parse_args(schema, &parsed_args, &arg_err, argc, argv);
 
   #define LOCAL_CLEANUP()\
@@ -314,6 +356,11 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
           cfg->runtime->thread_count = (*(size_t *)(current->value));
         }
         break;
+      case ARG_TYPE_FLOAT:
+        if (strcmp(current->key, CFG_PLATFORM_PREFIX(version)) == 0) {
+          cfg->platform->version = (*(float *)(current->value));
+        }
+        break;
       case ARG_TYPE_STRING:
         if (strcmp(current->key, CFG_DB_PREFIX(type)) == 0) {
           strcpy(cfg->db->type, (char *)current->value);
@@ -331,6 +378,8 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
           strcpy(cfg->storage->encryption_key_path, (char *)current->value);
         } else if (strcmp(current->key, CFG_STORAGE_PREFIX(remote_target)) == 0) {
           strcpy(cfg->storage->remote_target, (char *)current->value);
+        } else if (strcmp(current->key, CFG_PLUGIN_PREFIX(dir)) == 0) {
+          strcpy(cfg->plugin->dir, (char *)current->value);
         } else if (strcmp(current->key, CFG_RUNTIME_PREFIX(tmp_dir)) == 0) {
           strcpy(cfg->runtime->temp_dir, (char *)current->value);
         }
