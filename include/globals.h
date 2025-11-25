@@ -10,6 +10,8 @@
 #define BUF_LEN (1024)
 
 #define CFG_STORAGE_PREFIX(x) ("storage_"#x)
+#define CFG_PLATFORM_PREFIX(x) ("platform_"#x)
+#define CFG_PLUGIN_PREFIX(x) ("plugin_"#x)
 #define CFG_DB_PREFIX(x) ("db_"#x)
 #define CFG_RUNTIME_PREFIX(x) ("runtime_"#x)
 #define CFG_PATH ("config_path")

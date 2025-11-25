@@ -16,7 +16,9 @@ int main(int argc, char *argv[]) {
     DBConfig_t *cfg_db = init_db_config("passed:postgres", "passed:https://db", "passed:full", 5000);
     StorageConfig_t *cfg_storage = init_storage_config("passed:./tests", "passed:shannon", "passed:./pat", "passed:http://remote");
     RuntimeConfig_t *cfg_runtime = init_runtime_config(3, 2, "passed:locals");
-    AppConfig_t *cfg = init_app_config(cfg_db, cfg_storage, cfg_runtime);
+    PlatformConfig_t *cfg_platform = init_platform_config(2.0);
+    PluginConfig_t *cfg_plugin = init_plugin_config("/plugins");
+    AppConfig_t *cfg = init_app_config(cfg_db, cfg_storage, cfg_runtime, cfg_platform, cfg_plugin);
 
     ConfigParserError_t *err = NULL;
 

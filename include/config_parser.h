@@ -11,6 +11,9 @@
 #include "globals.h"
 
 //macro defs
+#define DEFAULT_PLATFORM_VERSION (1.0)
+#define DEFAULT_PLUGIN_PATH ("")
+
 #define DEFAULT_DB_URI ("default:uri")
 #define DEFAULT_DB_TYPE ("default:type")
 #define DEFAULT_DB_BACKUP_MODE ("default:backup_mode")
@@ -37,7 +40,9 @@ typedef enum {
   SECTION_NONE,
   SECTION_DB,
   SECTION_STORAGE,
-  SECTION_RUNTIME
+  SECTION_RUNTIME,
+  SECTION_PLATFORM,
+  SECTION_PLUGIN
 } config_section_t;
 
 typedef enum {
@@ -58,10 +63,20 @@ typedef struct RuntimeConfig {
   char            temp_dir[BUF_LEN_S];
 } RuntimeConfig_t;
 
+typedef struct PlatformConfig {
+  float           version;
+} PlatformConfig_t;
+
+typedef struct PluginConfig {
+  char            dir[BUF_LEN_S];
+} PluginConfig_t;
+
 typedef struct AppConfig {
   DBConfig_t           *db;
   StorageConfig_t      *storage;
   RuntimeConfig_t      *runtime;
+  PlatformConfig_t     *platform;
+  PluginConfig_t       *plugin;
 } AppConfig_t;
 
 typedef enum {
@@ -97,7 +112,12 @@ StorageConfig_t *init_storage_config(const char *output_path, const char *compre
 
 RuntimeConfig_t *init_runtime_config(size_t log_level, size_t thread_count, const char *temp_dir);
 
-AppConfig_t *init_app_config(DBConfig_t *db, StorageConfig_t *storage, RuntimeConfig_t *runtime);
+PlatformConfig_t *init_platform_config(float version);
+
+PluginConfig_t *init_plugin_config(const char *dir);
+
+AppConfig_t *init_app_config(DBConfig_t *db, StorageConfig_t *storage, RuntimeConfig_t *runtime,
+  PlatformConfig_t *platform, PluginConfig_t *plugin);
 AppConfig_t **get_app_config_handle();
 
 ConfigParserError_t *create_parser_error();
