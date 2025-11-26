@@ -8,7 +8,7 @@ int main(int argc, char **argv)
 
     add_flag(&schema_head, "log_path", ARG_TYPE_STRING);
 
-    Argument_t *args;
+    Argument_t *args = NULL;
     ArgParserError_t *err = NULL;
     parse_args(schema_head, &args, &err, argc, argv);
 
