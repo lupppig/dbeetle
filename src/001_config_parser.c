@@ -54,7 +54,7 @@ int assign_value(config_section_t section, const char *key,
         return -1;
       }
 
-      cfg->db->timeout_seconds = (int)val;
+      cfg->db->timeout_seconds = (size_t)val;
     } else {
       err->code = CONFIG_VALIDATION_ERROR;
       snprintf(err->message, sizeof(err->message), "Unknown db key: %s", key);
@@ -75,14 +75,14 @@ int assign_value(config_section_t section, const char *key,
   } else if (section == SECTION_PLATFORM) {
     if (strcmp(key, "version") == 0) {
       char *end = NULL;
-      val = strtof(value, &end);
+      val = strtol(value, &end, 10);
       if (*end != '\0') {
         err->code = CONFIG_VALIDATION_ERROR;
         snprintf(err->message, sizeof(err->message), "Invalid platform version: %s", value);
 
         return -1;
       }
-      cfg->platform->version = val;
+      cfg->platform->version = (float)val;
     } else {
       err->code = CONFIG_VALIDATION_ERROR;
       snprintf(err->message, sizeof(err->message), "Unknown platform key: %s", key);
@@ -102,10 +102,10 @@ int assign_value(config_section_t section, const char *key,
   } else if (section == SECTION_RUNTIME) {
     if (strcmp(key, "log_level") == 0) {
       val = strtol(value, NULL, 10);
-      cfg->runtime->log_level = (int)val;
+      cfg->runtime->log_level = (size_t)val;
     } else if (strcmp(key, "thread_count") == 0) {
       val = strtol(value, NULL, 10);
-      cfg->runtime->thread_count = (int)val;
+      cfg->runtime->thread_count = (size_t)val;
     } else if (strcmp(key, "tmp_dir") == 0) {
       strncpy(cfg->runtime->temp_dir, value, BUF_LEN_S);
     } else {

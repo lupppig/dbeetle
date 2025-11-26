@@ -1,22 +1,34 @@
 #include "include/arguments.h"
 #include <stdbool.h>
+#include "include/logs.h"
 
 int main(int argc, char **argv)
 {
-    Arguments *args;
-    ArgParser *parser = register_args();
-    Options opt;
+    FlagSchemaEntry_t *schema_head = NULL;
 
-    // register flags
-    arg_string(parser, "type", ARG_LONG_FLAG, "provide database type for to perform backup on", &opt.dbtype, true);
-    arg_bool(parser, "help", ARG_LONG_FLAG, "provide help about dbeetle", &opt.help, false);
-    arg_int(parser, "p", ARG_SHORT_FLAG, "database port provided", &opt.port, true);
-    arg_parser(parser, argc, argv);
+    add_flag(&schema_head, "log_path", ARG_TYPE_STRING);
 
-    // printf("database type: %s\n", opt.dbtype);
-    // printf("help flag: %s\n", opt.help);
-    // printf("port: provided %d", opt.port);
+    Argument_t *args;
+    ArgParserError_t *err = NULL;
+    parse_args(schema_head, &args, &err, argc, argv);
 
-    free_args_parser(parser);
+    if (err != NULL)
+    {
+        fprintf(stderr, "%s: %d", err->message, err->code);
+        destroy_parsed_argument(args);
+        destroy_flag_schema(schema_head);
+        exit(EXIT_FAILURE);
+    }
+
+    if (args && args->key && args->value)
+    {
+        if (strcmp(args->key, "log_path") == 0)
+        {
+            FILE *fp;
+            init_logger(args->value, &fp);
+            message_logger(fp, LOG_INFO, "welcome to dbeetle...");
+        }
+    }
+
     return 0;
 }
