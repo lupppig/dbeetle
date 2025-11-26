@@ -29,6 +29,7 @@ int main(int argc, char **argv)
             message_logger(fp, LOG_INFO, "welcome to dbeetle...");
         }
     }
-
+    destroy_parsed_argument(args);
+    destroy_flag_schema(schema_head);
     return 0;
 }
