@@ -54,7 +54,7 @@ int assign_value(config_section_t section, const char *key,
         return -1;
       }
 
-      cfg->db->timeout_seconds = (int)val;
+      cfg->db->timeout_seconds = (size_t)val;
     } else {
       err->code = CONFIG_VALIDATION_ERROR;
       snprintf(err->message, sizeof(err->message), "Unknown db key: %s", key);
@@ -75,14 +75,14 @@ int assign_value(config_section_t section, const char *key,
   } else if (section == SECTION_PLATFORM) {
     if (strcmp(key, "version") == 0) {
       char *end = NULL;
-      val = strtof(value, &end);
+      val = strtol(value, &end, 10);
       if (*end != '\0') {
         err->code = CONFIG_VALIDATION_ERROR;
         snprintf(err->message, sizeof(err->message), "Invalid platform version: %s", value);
 
         return -1;
       }
-      cfg->platform->version = val;
+      cfg->platform->version = (float)val;
     } else {
       err->code = CONFIG_VALIDATION_ERROR;
       snprintf(err->message, sizeof(err->message), "Unknown platform key: %s", key);
@@ -102,10 +102,10 @@ int assign_value(config_section_t section, const char *key,
   } else if (section == SECTION_RUNTIME) {
     if (strcmp(key, "log_level") == 0) {
       val = strtol(value, NULL, 10);
-      cfg->runtime->log_level = (int)val;
+      cfg->runtime->log_level = (size_t)val;
     } else if (strcmp(key, "thread_count") == 0) {
       val = strtol(value, NULL, 10);
-      cfg->runtime->thread_count = (int)val;
+      cfg->runtime->thread_count = (size_t)val;
     } else if (strcmp(key, "tmp_dir") == 0) {
       strncpy(cfg->runtime->temp_dir, value, BUF_LEN_S);
     } else {
@@ -268,8 +268,7 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
     DEFAULT_RUNTIME_THREAD_COUNT, DEFAULT_RUNTIME_TMP_DIR);
   PlatformConfig_t *cfg_platform = init_platform_config(DEFAULT_PLATFORM_VERSION);
   PluginConfig_t *cfg_plugin = init_plugin_config(DEFAULT_PLUGIN_PATH);
-  AppConfig_t *cfg = init_app_config(cfg_db, cfg_storage, cfg_runtime, cfg_platform, cfg_plugin),
-  **app_config = get_app_config_handle();
+  AppConfig_t *cfg = init_app_config(cfg_db, cfg_storage, cfg_runtime, cfg_platform, cfg_plugin);
   ConfigParserError_t *cfg_err = NULL;
   Argument_t *parsed_args = NULL, *config_path_entry = NULL;
   ArgParserError_t *arg_err = NULL;
