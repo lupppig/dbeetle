@@ -21,7 +21,7 @@ gcc \
   -g \
   -fsanitize=address,undefined \
   -fno-omit-frame-pointer \
-  src/*.c -I include -Llib -lyaml -lslre -lm \
+  src/*.c src/utils/*.c -I include -Llib -lyaml -lslre -lm \
   -o build-asan/dbeetle
 
 echo "[run] Running ASan + UBSan..."
@@ -35,7 +35,7 @@ gcc \
   -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 \
   -std=c11 \
   -g \
-  src/*.c -I include -Llib -lyaml -lslre -lm \
+  src/*.c src/utils/*.c -I include -Llib -lyaml -lslre -lm \
   -o build-valgrind/dbeetle
 
 echo "[run] Running valgrind..."
