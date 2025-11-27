@@ -1,5 +1,20 @@
 #include "include/config_parser.h"
 
+
+static AppConfig_t *app_config = NULL;
+
+AppConfig_t **get_app_config_handle() {
+  return &app_config;
+}
+
+void set_app_config(AppConfig_t *cfg) {
+  AppConfig_t **cfg_ptr = get_app_config_handle();
+
+  if (!cfg_ptr) return;
+  if (*cfg_ptr) destroy_app_config();
+  *cfg_ptr = cfg;
+}
+
 DBConfig_t *init_db_config(const char *type, const char *uri, const char *backup_mode, size_t timeout_seconds) {
   DBConfig_t *cfg = malloc(sizeof(DBConfig_t));
 
@@ -65,7 +80,16 @@ AppConfig_t *init_app_config(DBConfig_t *db, StorageConfig_t *storage, RuntimeCo
   PlatformConfig_t *platform, PluginConfig_t *plugin) {
   AppConfig_t *cfg = malloc(sizeof(AppConfig_t));
 
-  if (!cfg) return NULL;
+  if (!cfg) {
+    if (db) free(db);
+    if (storage) free(storage);
+    if (runtime) free(runtime);
+    if (platform) free(platform);
+    if (plugin) free(plugin);
+
+    return NULL;
+  }
+
   cfg->db = db;
   cfg->storage = storage;
   cfg->runtime = runtime;
@@ -84,12 +108,15 @@ ConfigParserError_t *create_parser_error() {
   return err;
 }
 
-void destroy_app_config(AppConfig_t **cfg) {
-  if (!cfg) return;
-  AppConfig_t *app_cfg = *cfg, **app_cfg_ref = get_app_config_handle();
+void destroy_app_config() {
+  AppConfig_t *app_cfg = NULL, **app_cfg_ref = get_app_config_handle();
+
+  app_cfg = *app_cfg_ref;
+
   if (!app_cfg) {
     return;
   }
+
   if (app_cfg->db) free(app_cfg->db);
   if (app_cfg->storage) free(app_cfg->storage);
   if (app_cfg->runtime) free(app_cfg->runtime);
@@ -97,7 +124,6 @@ void destroy_app_config(AppConfig_t **cfg) {
   if (app_cfg->plugin) free(app_cfg->plugin);
 
   free(app_cfg);
-  *cfg = NULL;
   *app_cfg_ref = NULL;
 }
 

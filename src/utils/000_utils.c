@@ -1,11 +1,6 @@
 #include "include/globals.h"
-#include "include/config_parser.h"
+#include "include/plugin_manager.h"
 
-static AppConfig_t *app_config = NULL;
-
-AppConfig_t **get_app_config_handle() {
-  return &app_config;
-}
 
 StackError_t *___unsafe_to_stack_error___(void *err) {
   StackError_t *dst = NULL;
@@ -40,6 +35,10 @@ StackError_t *___unsafe_to_stack_error___(void *err) {
   dst->message[BUF_LEN_M - 1] = '\0';
 
   return dst;
+}
+
+DriverStatus_t to_driver_status(size_t s) {
+  return (DriverStatus_t)s;
 }
 
 
