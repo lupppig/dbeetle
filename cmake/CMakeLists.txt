@@ -13,7 +13,6 @@ file(GLOB SRC_FILES "../src/*.c" "../src/utils/*.c")
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(YAML REQUIRED yaml-0.1)
 
-
 # Create the executable
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 

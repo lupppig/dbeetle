@@ -187,7 +187,6 @@ ConfigParserStatus_t config_load_file(const char *path,
     if (!yaml_parser_parse(&parser, &event)) {
       if (err) {
         status = CONFIG_PARSE_ERROR;
-
         local_err->code = status;
         snprintf(status_text, status_text_cap, "YAML parse error: %s", parser.problem);
         local_err->line = parser.problem_mark.line + 1;
@@ -282,6 +281,7 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
     CFG_DB_PREFIX(uri), CFG_STORAGE_PREFIX(compression), CFG_STORAGE_PREFIX(remote_target),
     CFG_PATH, CFG_PLUGIN_PREFIX(dir), NULL};
 
+  set_app_config(cfg);
 
   for (size_t i = 0; string_config_list[i]; i++) {
     add_flag(&schema, string_config_list[i], ARG_TYPE_STRING);
@@ -297,7 +297,7 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
   {\
     destroy_flag_schema(schema);\
     destroy_parsed_argument(parsed_args);\
-    destroy_app_config(&cfg);\
+    destroy_app_config();\
   }
 
   if (parser_status != ARG_SUCCESS) {
@@ -389,5 +389,5 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
 
   destroy_parsed_argument(parsed_args);
   destroy_flag_schema(schema);
-  *app_config = cfg;
+  #undef LOCAL_CLEANUP
 }
