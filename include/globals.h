@@ -8,6 +8,7 @@
 #define BUF_LEN_S (256)
 #define BUF_LEN_M (512)
 #define BUF_LEN (1024)
+#define BUF_LEN_L (4096)
 
 #define CFG_STORAGE_PREFIX(x) ("storage_"#x)
 #define CFG_PLATFORM_PREFIX(x) ("platform_"#x)
@@ -26,6 +27,7 @@ typedef struct StackError {
   char                 message[BUF_LEN_M];
 } StackError_t;
 
+typedef char *StackErrorMessage_t;
 
 StackError_t *create_stack_error();
 StackError_t *___unsafe_to_stack_error___(void *err);
