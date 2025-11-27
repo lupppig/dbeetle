@@ -12,7 +12,7 @@
 
 //macro defs
 #define DEFAULT_PLATFORM_VERSION (1.0)
-#define DEFAULT_PLUGIN_PATH ("")
+#define DEFAULT_PLUGIN_PATH ("assets/plugins")
 
 #define DEFAULT_DB_URI ("default:uri")
 #define DEFAULT_DB_TYPE ("default:type")
@@ -123,7 +123,7 @@ AppConfig_t **get_app_config_handle();
 ConfigParserError_t *create_parser_error();
 
 void print_app_config(AppConfig_t *cfg);
-void destroy_app_config(AppConfig_t **cfg);
+void destroy_app_config();
 void destroy_parser_error(ConfigParserError_t **err);
 /**
  * merge_configs - merges cli argument configs with the yaml configs
@@ -136,7 +136,7 @@ void destroy_parser_error(ConfigParserError_t **err);
  * ~NOTE~:
  **/
 void merge_configs(int argc, char **argv, StackError_t **err);
-void set_app_config();
+void set_app_config(AppConfig_t *cfg);
 
 
 #endif /* ___CONFIG_PARSER_H___ */
