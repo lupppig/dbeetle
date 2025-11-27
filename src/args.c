@@ -7,8 +7,6 @@
 // DEFINE_ARG_FUNC(int, ARG_TYPE_INT)
 // DEFINE_ARG_FUNC(string, ARG_TYPE_STRING)
 
-// bool flag_exists(ArgParser *parser, char *flag);
-
 // /**
 //  * register_args - Allocates and initializes a new ArgParser.
 //  *

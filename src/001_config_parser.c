@@ -268,8 +268,7 @@ void merge_configs(int argc, char **argv, StackError_t **err) {
     DEFAULT_RUNTIME_THREAD_COUNT, DEFAULT_RUNTIME_TMP_DIR);
   PlatformConfig_t *cfg_platform = init_platform_config(DEFAULT_PLATFORM_VERSION);
   PluginConfig_t *cfg_plugin = init_plugin_config(DEFAULT_PLUGIN_PATH);
-  AppConfig_t *cfg = init_app_config(cfg_db, cfg_storage, cfg_runtime, cfg_platform, cfg_plugin),
-  **app_config = get_app_config_handle();
+  AppConfig_t *cfg = init_app_config(cfg_db, cfg_storage, cfg_runtime, cfg_platform, cfg_plugin);
   ConfigParserError_t *cfg_err = NULL;
   Argument_t *parsed_args = NULL, *config_path_entry = NULL;
   ArgParserError_t *arg_err = NULL;
